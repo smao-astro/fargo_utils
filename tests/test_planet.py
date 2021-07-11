@@ -36,7 +36,7 @@ def read_planet_config(planet_config_file):
 
 
 def test_read_single_planet_cfg_to_args():
-    planet_files = glob.glob("/Users/kyika/src/fargo3d/planets/*.cfg")
+    planet_files = glob.glob("./data/planets/*.cfg")
     # remove multi-planet files
     planet_files = [
         planet_file for planet_file in planet_files if "Kepler38" not in planet_file
