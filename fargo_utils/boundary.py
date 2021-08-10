@@ -3,30 +3,34 @@ import re
 
 class BoundLines:
     """Reader of `fargo.bound` files."""
+
     def __init__(self, file_path):
         self.lines = None
-        self._args = None
+        self.args_dict = None
 
         with open(file_path, "r") as f:
             self.lines = f.readlines()
-        self._args = self.get_args()
+        self.args_dict = self.get_args()
 
     def get_args(self) -> dict:
-        i = 0
         args = {}
-        while i < len(self.lines):
-            line = self.lines[i]
-            # if line starts with alphabetic characters
+        key = None
+        for line in self.lines:
             if line[:1].isalpha():
-                name = re.split(r"\W+", line)[0]
-                for next_line in self.lines[i + 1 : i + 3]:
-                    next_line = re.split(r"\W+", next_line.strip())
-                    args[name + next_line[0]] = next_line[1]
-                i += 3
-            else:
-                i += 1
+                key = re.split(r"\W+", line)[0]
+                args[key] = {}
+            if line.startswith("\t"):
+                subkey, value = re.split(r"\W+", line.strip())
+                if key is None:
+                    raise ValueError(f"`key` not assigned.")
+                args[key][subkey] = value
         return args
 
     @property
-    def args(self):
-        return [word for kv in self._args.items() for word in ["--" + kv[0], kv[1]]]
+    def args_list(self):
+        return [
+            word
+            for key, subdict in self.args_dict.items()
+            for subkey, value in subdict.items()
+            for word in ["--" + key + subkey, value]
+        ]

@@ -10,4 +10,4 @@ def test_boundlines():
     boundlines = fargo_utils.boundary.BoundLines(bound_file)
     with open(ground_truth_file, "rb") as f:
         ground_truth = pickle.load(f)
-    assert boundlines.args == ground_truth
+    assert boundlines.args_list == ground_truth
