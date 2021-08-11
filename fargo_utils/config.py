@@ -8,9 +8,12 @@ def get_parser():
     parser.add_argument("--setup_name", type=str, default="main")
 
     ic_group = parser.add_argument_group("ic")
-    ic_group.add_argument("--DensityInitial")
-    ic_group.add_argument("--VxInitial")
-    ic_group.add_argument("--VyInitial")
+    ic_group.add_argument("--DensityInitial", choices=["RING2DDENS", "POWERLAW2DDENS"])
+    ic_group.add_argument(
+        "--VxInitial",
+        choices=["STATICPOWERLAW2DVAZIM", "KEPLERIAN2DVAZIM", "STATICRING2DVAZIM"],
+    )
+    ic_group.add_argument("--VyInitial", choices=["STATICVY", "KEPLERIANRINGVY"])
 
     bc_group = parser.add_argument_group("bc")
     bc_group.add_argument("--DensityYmin")

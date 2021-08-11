@@ -49,7 +49,7 @@ def test_dict_to_nested_dict(boundlines):
     assert args_dict == boundlines.args_dict
 
 
-def test_create_boundlines(tmp_path, boundlines):
+def test_cfg_to_nested_dict(tmp_path, boundlines):
     parser = fargo_utils.config.get_parser()
     cfg = parser.parse_args(
         [
@@ -71,6 +71,8 @@ def test_create_boundlines(tmp_path, boundlines):
             "ANTISYMMETRIC",
         ]
     )
-    new_file = fargo_utils.boundary.create_boundlines(cfg)
+    bound_args = fargo_utils.boundary.cfg_to_nested_dict(cfg)
+    new_file = tmp_path / cfg.setups_dir / (cfg.setup_name + ".bound")
+    fargo_utils.boundary.write_boundlines(bound_args, new_file)
     new_bl = fargo_utils.boundary.BoundLinesReader(new_file)
     assert boundlines.args_dict == new_bl.args_dict

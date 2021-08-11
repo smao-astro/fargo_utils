@@ -83,11 +83,11 @@ def write_boundlines(args: dict, file_path, check_exists: bool = True):
     Returns:
 
     """
-    p = pathlib.Path(file_path)
+    file_path = pathlib.Path(file_path)
     if check_exists:
-        if p.exists():
+        if file_path.exists():
             raise FileExistsError
-    parent = p.parent
+    parent = file_path.parent
     if not parent.exists():
         parent.mkdir(parents=True)
 
@@ -97,21 +97,13 @@ def write_boundlines(args: dict, file_path, check_exists: bool = True):
         for subkey, value in subdict.items():
             lines.append("\t" + subkey + ": " + value + "\n")
 
-    with p.open("w") as f:
+    with file_path.open("w") as f:
         f.writelines(lines)
 
 
-def create_boundlines(cfg: Namespace):
-    # for Ymin / Ymax in cfg
-    args_dict = {}
-    cfg = cfg.__dict__
-    for key in cfg.keys():
+def cfg_to_nested_dict(cfg):
+    bound_args = {}
+    for key in cfg.__dict__.keys():
         if (key.endswith("Ymin") or key.endswith("Ymax")) and len(key) > 4:
-            args_dict[key] = cfg[key]
-
-    args_dict = dict_to_nested_dict(args_dict)
-    p = pathlib.Path(cfg["setups_dir"])
-    bound_file = p.joinpath(cfg["setup_name"], cfg["setup_name"] + ".bound")
-    write_boundlines(args_dict, bound_file)
-
-    return bound_file
+            bound_args[key] = getattr(cfg, key)
+    return dict_to_nested_dict(bound_args)
