@@ -37,7 +37,7 @@ class BoundLinesReader:
         ]
 
 
-def __to_nested_dict(args_list):
+def args_to_nested_dict(args_list):
     """
 
     Args:
@@ -46,7 +46,15 @@ def __to_nested_dict(args_list):
     Returns:
 
     """
-    pass
+    args_dict = {}
+    for i in range(0, len(args_list), 2):
+        key = args_list[i].strip("-")
+        key, subkey = key[:-4], key[-4:]
+        if not key in args_dict:
+            args_dict[key] = {}
+        args_dict[key][subkey] = args_list[i + 1]
+
+    return args_dict
 
 
 def write_boundlines(args: dict, file_path, check_exists=True):

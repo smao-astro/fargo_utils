@@ -22,3 +22,9 @@ def test_write_boundlines(tmp_path):
     new_boundlines = fargo_utils.boundary.BoundLinesReader(tmp_file)
     # assert
     assert boundlines.args_list == new_boundlines.args_list
+
+
+def test_args_to_nested_dict():
+    boundlines = fargo_utils.boundary.BoundLinesReader(bound_file)
+    args_dict = fargo_utils.boundary.args_to_nested_dict(boundlines.args_list)
+    assert args_dict == boundlines.args_dict
