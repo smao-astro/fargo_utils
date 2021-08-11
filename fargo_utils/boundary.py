@@ -1,7 +1,8 @@
+import pathlib
 import re
 
 
-class BoundLines:
+class BoundLinesReader:
     """Reader of `fargo.bound` files."""
 
     def __init__(self, file_path):
@@ -34,3 +35,41 @@ class BoundLines:
             for subkey, value in subdict.items()
             for word in ["--" + key + subkey, value]
         ]
+
+
+def __to_nested_dict(args_list):
+    """
+
+    Args:
+        args_list: e.g. ['--DensityYmin', 'KEPLERIAN2DDENS', '--DensityYmax', 'KEPLERIAN2DDENS', '--VxYmin', 'KEPLERIAN2DVAZIM', '--VxYmax', 'KEPLERIAN2DVAZIM', '--VyYmin', 'ANTISYMMETRIC', '--VyYmax', 'ANTISYMMETRIC']
+
+    Returns:
+
+    """
+    pass
+
+
+def write_boundlines(args: dict, file_path, check_exists=True):
+    """
+
+    Args:
+        args: e.g. {'Density': {'Ymin': 'KEPLERIAN2DDENS', 'Ymax': 'KEPLERIAN2DDENS'}, 'Vx': {'Ymin':
+        'KEPLERIAN2DVAZIM', 'Ymax': 'KEPLERIAN2DVAZIM'}, 'Vy': {'Ymin': 'ANTISYMMETRIC', 'Ymax': 'ANTISYMMETRIC'}}
+        file_path:
+
+    Returns:
+
+    """
+    p = pathlib.Path(file_path)
+    if check_exists:
+        if p.exists():
+            raise FileExistsError
+
+    lines = []
+    for key, subdict in args.items():
+        lines.append(key + ":\n")
+        for subkey, value in subdict.items():
+            lines.append("\t" + subkey + ": " + value + "\n")
+
+    with p.open("w") as f:
+        f.writelines(lines)
