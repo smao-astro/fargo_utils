@@ -45,15 +45,15 @@ void Init() {
       vphi[l] = omega * r;
       vphi[l] -= OMEGAFRAME * r;
 
-      real part =
-          (RINGWIDTH * RINGWIDTH) *
-          (sqrt(2.0) +
-           2.0 * pow(M_E, 0.5 * pow((r - RINGCENTER) / RINGWIDTH, 2.0)) *
-               sqrt(M_PI) * RINGWIDTH);
-      vr[l] =
-          3.0 * NU *
-          (2.0 * sqrt(2.0) * r * r - 2.0 * sqrt(2.0) * r * RINGCENTER - part) /
-          (2.0 * r * part);
+      real inverse_exp_part =
+          pow(M_E, -0.5 * pow((r - RINGCENTER) / RINGWIDTH, 2.0));
+      real part = (RINGWIDTH * RINGWIDTH) *
+                  (sqrt(2.0) * inverse_exp_part + 2.0 * sqrt(M_PI) * RINGWIDTH);
+      vr[l] = 3.0 * NU *
+              ((2.0 * sqrt(2.0) * r * r - 2.0 * sqrt(2.0) * r * RINGCENTER) *
+                   inverse_exp_part -
+               part) /
+              (2.0 * r * part);
     }
   }
 }
