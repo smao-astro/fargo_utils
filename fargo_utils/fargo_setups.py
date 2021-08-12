@@ -19,10 +19,12 @@ def create_setups(cfg):
     boundary.write_boundlines(bound_args, bound_file)
 
     # copy bound to bound.0
-    shutil.copy(bound_file, bound_args / ".0")
+    shutil.copy(bound_file, bound_file / ".0")
 
     # ic file (move matched file from setup_base)
-    ic_file = fargo_utils.ic.get_condinit_file()
+    ic_file = fargo_utils.ic.get_condinit_file(
+        cfg.DensityInitial, cfg.VxInitial, cfg.VyInitial
+    )
     shutil.copy(ic_file, p / "condinit.c")
 
     # opt file
