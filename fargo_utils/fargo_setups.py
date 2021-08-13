@@ -4,6 +4,7 @@ import shutil
 from . import boundary
 from . import ic
 from . import opt
+from . import par
 
 
 def create_setups(arg_groups: dict):
@@ -37,3 +38,5 @@ def create_setups(arg_groups: dict):
     opt.update_opt_file(opt_file, arg_groups["opt"])
 
     # par file
+    par_file = p / (arg_groups["'optional arguments'"].job_name + ".par")
+    par.write_args(par_file, args=arg_groups["par"])

@@ -5,6 +5,7 @@ import math
 def get_parser():
     parser = argparse.ArgumentParser("setups", fromfile_prefix_chars="@")
     parser.add_argument("--setups_dir", type=str, required=True)
+    parser.add_argument("--job_name", required=True)
 
     ic_group = parser.add_argument_group("ic")
     ic_group.add_argument("--DensityInitial", choices=["RING2DDENS", "POWERLAW2DDENS"])
