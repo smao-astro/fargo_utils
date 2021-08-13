@@ -6,9 +6,9 @@ from . import ic
 from . import opt
 
 
-def create_setups(cfg):
+def create_setups(arg_groups: dict):
     # set setups dir
-    p = pathlib.Path(cfg.setups_dir)
+    p = pathlib.Path(arg_groups["optional arguments"].setups_dir)
     # check exists
     if p.exists():
         raise FileExistsError
@@ -16,21 +16,24 @@ def create_setups(cfg):
     p.mkdir()
 
     # bound file
-    bound_args = boundary.cfg_to_nested_dict(cfg)
-    bound_file = p / (cfg.setup_name + ".bound")
+    bound_args = boundary.cfg_to_nested_dict(arg_groups["bc"])
+    bound_file = p / (arg_groups["optional arguments"].setup_name + ".bound")
     boundary.write_boundlines(bound_args, bound_file)
 
     # copy bound to bound.0
     shutil.copy(bound_file, bound_file / ".0")
 
     # ic file (move matched file from setup_base)
-    ic_file = ic.get_condinit_file(cfg.DensityInitial, cfg.VxInitial, cfg.VyInitial)
+    ic_file = ic.get_condinit_file(
+        arg_groups["ic"].DensityInitial,
+        arg_groups["ic"].VxInitial,
+        arg_groups["ic"].VyInitial,
+    )
     shutil.copy(ic_file, p / "condinit.c")
 
     # opt file
-    opt_file = p / (cfg.setup_name + ".opt")
+    opt_file = p / (arg_groups["optional arguments"].setup_name + ".opt")
     shutil.copy("./setup_base/opt/base.opt", opt_file)
-    opts = {k: getattr(cfg, k) for k in opt.opts}
-    opt.update_opt_file(opt_file, opts)
+    opt.update_opt_file(opt_file, arg_groups["opt"])
 
     # par file

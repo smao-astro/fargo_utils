@@ -53,7 +53,7 @@ def get_parser():
     par_group.add_argument("--Ymin", type=float)
     par_group.add_argument("--Ymax", type=float)
     par_group.add_argument("--OmegaFrame", type=float)
-    # TODO choice
+    # TODO add choice
     par_group.add_argument("--Frame", choices=[""])
     par_group.add_argument("--DT", type=float, default=math.pi / 100.0)
     par_group.add_argument("--Ninterm", type=int)
@@ -67,6 +67,7 @@ def get_parser():
     fargo_group.add_argument("--SigmaSlope", type=float)
 
     # ring specific args
+    # TODO check all given or all not given
     ring_group = parser.add_argument_group("ring")
     ring_group.add_argument("--RingCenter", type=float)
     ring_group.add_argument("--RingWidth", type=float)
@@ -74,3 +75,21 @@ def get_parser():
     # TODO unrecognised args should go to par?
 
     return parser
+
+
+def get_arg_groups(args=None):
+    """https://stackoverflow.com/a/46929320/16589166
+
+    Returns:
+
+    """
+    parser = get_parser()
+    args = parser.parse_args(args)
+
+    arg_groups = {}
+
+    for group in parser._action_groups:
+        group_dict = {a.dest: getattr(args, a.dest, None) for a in group._group_actions}
+        arg_groups[group.title] = argparse.Namespace(**group_dict)
+
+    return arg_groups

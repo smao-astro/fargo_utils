@@ -1,6 +1,3 @@
-opts = ["stockholm"]
-
-
 def partial_match(l: list, word: str):
     """
 

@@ -1,6 +1,6 @@
+import argparse
 import pathlib
 import re
-from argparse import Namespace
 
 
 class BoundLinesReader:
@@ -101,7 +101,7 @@ def write_boundlines(args: dict, file_path, check_exists: bool = True):
         f.writelines(lines)
 
 
-def cfg_to_nested_dict(cfg):
+def cfg_to_nested_dict(cfg: argparse.Namespace):
     bound_args = {}
     for key in cfg.__dict__.keys():
         if (key.endswith("Ymin") or key.endswith("Ymax")) and len(key) > 4:
