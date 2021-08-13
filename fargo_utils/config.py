@@ -5,7 +5,7 @@ import math
 def get_parser():
     parser = argparse.ArgumentParser("setups", fromfile_prefix_chars="@")
     parser.add_argument("--setups_dir", type=str, required=True)
-    parser.add_argument("--setup_name", type=str, default="main")
+    parser.add_argument("--Setup", type=str, default="main")
 
     ic_group = parser.add_argument_group("ic")
     ic_group.add_argument("--DensityInitial", choices=["RING2DDENS", "POWERLAW2DDENS"])
@@ -53,8 +53,7 @@ def get_parser():
     par_group.add_argument("--Ymin", type=float)
     par_group.add_argument("--Ymax", type=float)
     par_group.add_argument("--OmegaFrame", type=float)
-    # TODO add choice
-    par_group.add_argument("--Frame", choices=[""])
+    par_group.add_argument("--Frame", choices=["F", "C", "G"])
     par_group.add_argument("--DT", type=float, default=math.pi / 100.0)
     par_group.add_argument("--Ninterm", type=int)
     par_group.add_argument("--Ntot", type=int)
@@ -77,6 +76,15 @@ def get_parser():
     return parser
 
 
+def check_dampling_setup(args):
+    if (args.stockholm and args.DampingZone is None) or (
+        not args.stockholm and args.DampingZone is not None
+    ):
+        raise ValueError(
+            f"args.stockholm = {args.stockholm}, args.DampingZone = {args.DampingZone}"
+        )
+
+
 def get_arg_groups(args=None):
     """https://stackoverflow.com/a/46929320/16589166
 
@@ -85,6 +93,8 @@ def get_arg_groups(args=None):
     """
     parser = get_parser()
     args = parser.parse_args(args)
+
+    check_dampling_setup(args)
 
     arg_groups = {}
 
