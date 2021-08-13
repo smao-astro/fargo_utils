@@ -17,7 +17,7 @@ def create_setups(arg_groups: dict):
 
     # bound file
     bound_args = boundary.cfg_to_nested_dict(arg_groups["bc"])
-    bound_file = p / (arg_groups["optional arguments"].Setup + ".bound")
+    bound_file = p / (arg_groups["par"].Setup + ".bound")
     boundary.write_boundlines(bound_args, bound_file)
 
     # copy bound to bound.0
@@ -32,7 +32,7 @@ def create_setups(arg_groups: dict):
     shutil.copy(ic_file, p / "condinit.c")
 
     # opt file
-    opt_file = p / (arg_groups["optional arguments"].Setup + ".opt")
+    opt_file = p / (arg_groups["par"].Setup + ".opt")
     shutil.copy("./setup_base/opt/base.opt", opt_file)
     opt.update_opt_file(opt_file, arg_groups["opt"])
 

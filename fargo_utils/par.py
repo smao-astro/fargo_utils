@@ -1,4 +1,5 @@
 import argparse
+import pathlib
 
 
 def args_to_lines(args: argparse.Namespace):
@@ -10,29 +11,23 @@ def args_to_lines(args: argparse.Namespace):
     return arg_list
 
 
-def join_args(args: dict):
-    # todo check whether include unneeded keys
-    arg_list = []
-    # include Setup
-    arg_list.append("Setup" + "\t" + args["optional arguments"].Setup + "\n")
-    # include ic
-    arg_list += args_to_lines(args["ic"])
-    # include planet
-    arg_list += args_to_lines(args["planet"])
-    # include par, fargo, ring
-    arg_list += args_to_lines(args["par"])
-    fargo_list = args_to_lines(args["fargo"])
-    ring_list = args_to_lines(args["ring"])
-    # xor
-    if (fargo_list and ring_list) or (not fargo_list and not ring_list):
-        raise ValueError(f"fargo_list = {fargo_list}, ring_list = {ring_list}")
-    arg_list += fargo_list
-    arg_list += ring_list
-    return arg_list
+def write_args(file_path, args: argparse.Namespace):
+    """
 
+    Args:
+        file_path:
+        args: par
 
-def write_args(file_path, args):
+    Returns:
+
+    """
+    lines = args_to_lines(args)
+    file_path = pathlib.Path(file_path)
     # check file exits
-
+    if file_path.exists():
+        raise FileExistsError
+    if not file_path.parent.exists():
+        file_path.parent.mkdir()
     # open file and write
-    pass
+    with open(file_path, "w") as f:
+        f.writelines(lines)
