@@ -4,7 +4,7 @@ import math
 
 def get_parser():
     parser = argparse.ArgumentParser("setups", fromfile_prefix_chars="@")
-    parser.add_argument("--setups_dir", type=str, required=True)
+    parser.add_argument("--setups_dir", type=str, required=True, help="the path of setups/")
     parser.add_argument("--job_name", required=True)
 
     ic_group = parser.add_argument_group("ic")
@@ -100,7 +100,7 @@ def get_parser():
     par_group.add_argument("--SemiMajorAxis", type=float)
 
     par_group.add_argument("--FuncArchFile")
-    par_group.add_argument("--Setup")
+    par_group.add_argument("--Setup", required=True)
 
     par_group.add_argument("--Nsnap", type=int)
     par_group.add_argument("--WriteDensity", choices=["yes", "no"])

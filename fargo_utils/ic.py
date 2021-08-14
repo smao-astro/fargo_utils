@@ -2,7 +2,10 @@ import pathlib
 
 
 def get_condinit_file(density_initial, vx_initial, vy_initial):
+    print("=" * 10)
+    print("Initial Condition")
     print(density_initial, vx_initial, vy_initial)
+    print("=" * 10)
     choices = {
         ("POWERLAW2DDENS", "STATICPOWERLAW2DVAZIM", "STATICVY"): "fargo.c",
         ("RING2DDENS", "KEPLERIAN2DVAZIM", "KEPLERIANRINGVY"): "keplerian_ring.c",
@@ -10,6 +13,6 @@ def get_condinit_file(density_initial, vx_initial, vy_initial):
     }
     key = (density_initial, vx_initial, vy_initial)
     if key in choices.keys():
-        return pathlib.Path("setup_base") / choices[key]
+        return pathlib.Path("setup_base") / "condinit" / choices[key]
     else:
         raise NotImplementedError

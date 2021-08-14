@@ -11,17 +11,17 @@ def args_to_lines(args: argparse.Namespace):
     return arg_list
 
 
+def move_to_first(lines, startswith="Setup"):
+    for i, line in enumerate(lines):
+        if line.startswith("Setup"):
+            lines.pop(i)
+            lines.insert(0, line)
+
+
 def write_args(file_path, args: argparse.Namespace):
-    """
-
-    Args:
-        file_path:
-        args: par
-
-    Returns:
-
-    """
     lines = args_to_lines(args)
+    # make the par file first line be Setup
+    move_to_first(lines)
     file_path = pathlib.Path(file_path)
     # check file exits
     if file_path.exists():

@@ -1,3 +1,6 @@
+import argparse
+
+
 def partial_match(l: list, word: str):
     """
 
@@ -10,7 +13,9 @@ def partial_match(l: list, word: str):
     return None
 
 
-def update_opt_file(opt_file, opts: dict):
+def update_opt_file(opt_file, opts: dict or argparse.Namespace):
+    if isinstance(opts, argparse.Namespace):
+        opts = opts.__dict__
     with open(opt_file, "r") as f:
         lines = f.readlines()
 
