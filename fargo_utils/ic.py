@@ -1,4 +1,6 @@
-import pathlib
+import importlib.resources
+
+from . import setup_base
 
 
 def get_condinit_file(density_initial, vx_initial, vy_initial):
@@ -13,6 +15,7 @@ def get_condinit_file(density_initial, vx_initial, vy_initial):
     }
     key = (density_initial, vx_initial, vy_initial)
     if key in choices.keys():
-        return pathlib.Path("setup_base") / "condinit" / choices[key]
+        with importlib.resources.path(setup_base.condinit, choices[key]) as p:
+            return p
     else:
         raise NotImplementedError
