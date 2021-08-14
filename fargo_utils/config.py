@@ -2,9 +2,20 @@ import argparse
 import math
 
 
+class MyArgumentParser(argparse.ArgumentParser):
+    def convert_arg_line_to_args(self, arg_line: str):
+        if arg_line.startswith(("#", "\n")) or arg_line == "":
+            return []
+        arg_line = arg_line.split()
+        return ["--" + arg_line[0], arg_line[1]]
+
+
 def get_parser():
-    parser = argparse.ArgumentParser("setups", fromfile_prefix_chars="@")
-    parser.add_argument("--setups_dir", type=str, required=True, help="the path of setups/")
+    # TODO read par file
+    parser = MyArgumentParser("setups", fromfile_prefix_chars="&")
+    parser.add_argument(
+        "--setups_dir", type=str, required=True, help="the path of setups/"
+    )
     parser.add_argument("--job_name", required=True)
 
     ic_group = parser.add_argument_group("ic")
