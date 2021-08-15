@@ -1,0 +1,17 @@
+- model: fargo
+  operations:
+    get_fargo:
+      exec: bash get_fargo3d.sh
+      requires:
+        - file: get_fargo3d.sh
+          target-type: copy
+
+    setups:
+      main: fargo_utils.fargo_setups
+      flags-dest: args
+      flags-import: all
+
+    compile:  
+      exec: make SETUP=${setup}
+      flags:
+        setup:
