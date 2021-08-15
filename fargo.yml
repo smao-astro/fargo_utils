@@ -1,5 +1,5 @@
 - setups_dir: fargo3d/setups
-  job_name: tmp2
+  job_name: fargo2
   
   DensityInitial: POWERLAW2DDENS
   VxInitial: STATICPOWERLAW2DVAZIM

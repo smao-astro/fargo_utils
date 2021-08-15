@@ -21,11 +21,52 @@
       flags-import: all
       requires:
         - operation: get_fargo
+          target-type: copy
 
     compile:  
-      exec: cd fargo3d; make SETUP=${setup}
+      exec: bash compile.sh
       requires:
+        - file: compile.sh
+          target-type: copy
         - operation: setups
+          target-type: copy
       flags:
+        # from std/defaultflags
         setup:
           required: yes
+        BIGMEM:
+          choices: [0, 1]
+          default: 1
+        RESCALE:
+          choices: [0, 1]
+          default: 0
+        PROFILING:
+          choices: [0, 1]
+          default: 0
+        PARALLEL:
+          choices: [0, 1]
+          default: 0
+        MPICUDA:
+          choices: [0, 1]
+          default: 0
+        GPU:
+          choices: [0, 1]
+          default: 0
+        DEBUG:
+          choices: [0, 1]
+          default: 0
+        FULLDEBUG:
+          choices: [0, 1]
+          default: 0
+        FARGO_DISPLAY:
+          choices: ['NONE', 'MATPLOTLIB']
+          default: 'NONE'
+        UNITS:
+          choices: ['0', 'MKS', 'CGS']
+          default: '0'
+        GHOSTSX:
+          choices: [0, 1]
+          default: 0
+        LONGSUMMARY:
+          choices: [0, 1]
+          default: 0
