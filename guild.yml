@@ -1,4 +1,13 @@
 - model: fargo
+  sourcecode:
+    - exclude:
+        dir: fargo3d
+    - exclude:
+        dir: tmp
+    - exclude:
+        dir: tests
+    - exclude: '*.ipynb'
+
   operations:
     get_fargo:
       exec: bash get_fargo3d.sh
@@ -10,8 +19,13 @@
       main: fargo_utils.fargo_setups
       flags-dest: args
       flags-import: all
+      requires:
+        - operation: get_fargo
 
     compile:  
-      exec: make SETUP=${setup}
+      exec: cd fargo3d; make SETUP=${setup}
+      requires:
+        - operation: setups
       flags:
         setup:
+          required: yes

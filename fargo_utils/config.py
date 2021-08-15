@@ -11,7 +11,7 @@ class MyArgumentParser(argparse.ArgumentParser):
 
 
 def get_parser():
-    parser = MyArgumentParser("setups", fromfile_prefix_chars="%")
+    parser = MyArgumentParser("setups", fromfile_prefix_chars="@")
     parser.add_argument(
         "--setups_dir", type=str, required=True, help="the path of setups/"
     )

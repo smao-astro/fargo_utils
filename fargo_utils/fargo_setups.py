@@ -20,7 +20,7 @@ def create_setups(arg_groups: dict):
     if p.exists():
         raise FileExistsError
     # create
-    p.mkdir()
+    p.mkdir(parents=True)
 
     # bound file
     bound_args = boundary.cfg_to_nested_dict(arg_groups["bc"])
