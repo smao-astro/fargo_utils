@@ -23,10 +23,10 @@
         - operation: get_fargo
           target-type: copy
 
-    compile:  
-      exec: bash compile.sh
+    make:
+      exec: bash make.sh
       requires:
-        - file: compile.sh
+        - file: make.sh
           target-type: copy
         - operation: setups
           target-type: copy

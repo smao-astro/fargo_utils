@@ -71,6 +71,7 @@ def dict_to_nested_dict(args_dict):
     return nested_dict
 
 
+# TODO direct write to template
 def write_boundlines(args: dict, file_path, check_exists: bool = True):
     """
 
