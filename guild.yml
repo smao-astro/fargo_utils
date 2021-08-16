@@ -10,10 +10,7 @@
 
   operations:
     get_fargo:
-      exec: bash get_fargo3d.sh
-      requires:
-        - file: get_fargo3d.sh
-          target-type: copy
+      exec: bash -c "git clone --depth 1 https://bitbucket.org/fargo3d/public.git fargo3d && rm -rf fargo3d/.git"
 
     setups:
       main: fargo_utils.fargo_setups
@@ -24,10 +21,23 @@
           target-type: copy
 
     make:
-      exec: bash make.sh
+      exec: bash -c "
+            cd fargo3d &&
+            make SETUP=${setup} \
+              BIGMEM=${BIGMEM} \
+              RESCALE=${RESCALE} \
+              PROFILING=${PROFILING} \
+              PARALLEL=${PARALLEL} \
+              MPICUDA=${MPICUDA} \
+              GPU=${GPU} \
+              DEBUG=${DEBUG} \
+              FULLDEBUG=${FULLDEBUG} \
+              FARGO_DISPLAY=${FARGO_DISPLAY} \
+              UNITS=${UNITS} \
+              GHOSTSX=${GHOSTSX} \
+              LONGSUMMARY=${LONGSUMMARY}"
+
       requires:
-        - file: make.sh
-          target-type: copy
         - operation: setups
           target-type: copy
       flags:
@@ -70,3 +80,12 @@
         LONGSUMMARY:
           choices: [0, 1]
           default: 0
+
+    run:
+      exec: bash -c "cd fargo3d && ./fargo3d setups/${Setup}/${jobname}.par"
+      requires:
+        - operation: make
+          target-type: copy
+      flags:
+        Setup:
+        jobname:

@@ -27,7 +27,7 @@ def get_parser():
     parser.add_argument(
         "--setups_dir", type=str, required=True, help="the path of setups/"
     )
-    parser.add_argument("--job_name", required=True)
+    parser.add_argument("--job_name", required=True, help="The name of par file.")
 
     ic_group = parser.add_argument_group("ic")
     ic_group.add_argument("--DensityInitial", choices=["RING2DDENS", "POWERLAW2DDENS"])
@@ -173,7 +173,7 @@ def get_parser():
     par_group.add_argument("--SemiMajorAxis", type=float)
 
     par_group.add_argument("--FuncArchFile")
-    par_group.add_argument("--Setup", required=True)
+    par_group.add_argument("--Setup", required=True, help="The name of the hole setup directory.")
 
     par_group.add_argument("--Nsnap", type=int)
     par_group.add_argument("--WriteDensity", choices=["yes", "no"])
