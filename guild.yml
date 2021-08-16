@@ -23,7 +23,7 @@
     make:
       exec: bash -c "
             cd fargo3d &&
-            make SETUP=${setup} \
+            make SETUP=${SETUP} \
               BIGMEM=${BIGMEM} \
               RESCALE=${RESCALE} \
               PROFILING=${PROFILING} \
@@ -42,7 +42,7 @@
           target-type: copy
       flags:
         # from std/defaultflags
-        setup:
+        SETUP:
           required: yes
         BIGMEM:
           choices: [0, 1]
@@ -82,10 +82,10 @@
           default: 0
 
     run:
-      exec: bash -c "cd fargo3d && ./fargo3d setups/${Setup}/${jobname}.par"
+      exec: bash -c "cd fargo3d && ./fargo3d setups/${SETUP}/${JOBNAME}.par"
       requires:
         - operation: make
           target-type: copy
       flags:
-        Setup:
-        jobname:
+        SETUP:
+        JOBNAME:
