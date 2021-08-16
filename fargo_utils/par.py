@@ -1,27 +1,28 @@
-import argparse
 import pathlib
+
 import numpy as np
 
-def args_to_lines(args: argparse.Namespace):
+
+def args_to_lines(args: dict):
     """Only process args that not None."""
     arg_list = []
-    for k, v in args.__dict__.items():
+    for k, v in args.items():
         if v is not None:
             if isinstance(v, float):
                 # scientific notation like 1e-5 (rather than 1.0e-5) won't work with fargo3d
-                v = np.format_float_scientific(v, trim='0')
+                v = np.format_float_scientific(v, trim="0")
             arg_list.append(k + "\t" + str(v) + "\n")
     return arg_list
 
 
 def move_to_first(lines, startswith="Setup"):
     for i, line in enumerate(lines):
-        if line.startswith("Setup"):
+        if line.startswith(startswith):
             lines.pop(i)
             lines.insert(0, line)
 
 
-def write_args(file_path, args: argparse.Namespace):
+def write_args(file_path, args: dict):
     lines = args_to_lines(args)
     # make the par file first line be Setup
     move_to_first(lines)

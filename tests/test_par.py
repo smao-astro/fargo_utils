@@ -15,7 +15,7 @@ def args():
 
 
 def test_args_to_lines(args):
-    lines = fargo_utils.par.args_to_lines(args)
+    lines = fargo_utils.par.args_to_lines(vars(args))
     assert lines == ["a\t1\n"]
 
 

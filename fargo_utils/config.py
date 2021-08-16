@@ -141,11 +141,11 @@ def get_parser():
 
 
 def check_dampling_setup(args):
-    if (args.stockholm and args.DampingZone is None) or (
-        not args.stockholm and args.DampingZone is not None
+    if (args.STOCKHOLM and args.DampingZone is None) or (
+        not args.STOCKHOLM and args.DampingZone is not None
     ):
         raise ValueError(
-            f"args.stockholm = {args.stockholm}, args.DampingZone = {args.DampingZone}"
+            f"args.STOCKHOLM = {args.STOCKHOLM}, args.DampingZone = {args.DampingZone}"
         )
 
 

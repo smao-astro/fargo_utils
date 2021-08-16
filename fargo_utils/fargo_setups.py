@@ -46,7 +46,7 @@ def create_setups(arg_groups: dict):
 
     # par file
     par_file = p / (arg_groups["optional arguments"].job_name + ".par")
-    par.write_args(par_file, args=arg_groups["par"])
+    par.write_args(par_file, args={**vars(arg_groups["par"]), **vars(arg_groups["ic"])})
 
 
 if __name__ == "__main__":

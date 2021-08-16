@@ -12,7 +12,7 @@
   VyYmin: ANTISYMMETRIC
   VyYmax: ANTISYMMETRIC
   
-  stockholm: 1
+  STOCKHOLM: yes
   
   Setup: fargo2
   
