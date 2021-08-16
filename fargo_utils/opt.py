@@ -34,3 +34,38 @@ def update_opt_file(opt_file, opts: dict or argparse.Namespace):
         f.writelines(lines)
 
     return lines
+
+
+def write_opt_file(opt_file, opts: dict or argparse.Namespace):
+    if isinstance(opts, argparse.Namespace):
+        opts = opts.__dict__
+    lines = []
+    # fluid lines
+    fluids = [str(i) for i in range(opts["NFLUIDS"])]
+    lines.append(f"FLUIDS := {' '.join(fluids)}")
+    lines.append(f"NFLUIDS = {opts['NFLUIDS']}")
+    lines.append("FARGO_OPT += -DNFLUIDS=${NFLUIDS}")
+
+    # switches
+    for k, v in opts.items():
+        if isinstance(v, bool) and v:
+            lines.append(f"FARGO_OPT +=  -D{k}")
+
+    # CUDA blocks
+    cuda_blocks = [
+        "#Cuda blocks",
+        "ifeq (${GPU}, 1)",
+        f"FARGO_OPT += -DBLOCK_X={opts['BLOCK_X']}",
+        f"FARGO_OPT += -DBLOCK_Y={opts['BLOCK_Y']}",
+        f"FARGO_OPT += -DBLOCK_Z={opts['BLOCK_Z']}",
+        "endif",
+    ]
+    lines += cuda_blocks
+
+    # MONITOR
+    for k, v in opts.items():
+        if k.startswith("MONITOR") and len(v) > 0:
+            lines.append(f"{k} = {v}")
+
+    with open(opt_file, "w") as f:
+        f.write("\n".join(lines))

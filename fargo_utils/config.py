@@ -1,11 +1,23 @@
 import argparse
 import math
+import re
+
+
+def split_quoted_line(arg_line):
+    starts = [m.start() for m in re.finditer("'", arg_line)]
+    if len(starts) != 2:
+        raise ValueError(f"Can not preprocess arg_line = {arg_line}")
+    value = arg_line[starts[0] : starts[1] + 1]
+    key = arg_line[: starts[0]].split()[0]
+    return ["--" + key, value]
 
 
 class MyArgumentParser(argparse.ArgumentParser):
     def convert_arg_line_to_args(self, arg_line: str):
         if arg_line.startswith(("#", "\n")) or arg_line == "":
             return []
+        if "'" in arg_line:
+            return split_quoted_line(arg_line)
         arg_line = arg_line.split()
         return ["--" + arg_line[0], arg_line[1]]
 
@@ -36,7 +48,58 @@ def get_parser():
 
     # opt
     opt_group = parser.add_argument_group("opt")
-    opt_group.add_argument("--stockholm", type=bool)
+    ## Fluids
+    opt_group.add_argument("--NFLUIDS", type=int, required=True)
+    opt_group.add_argument("--DRAGFORCE", type=bool)
+    opt_group.add_argument("--STOKESNUMBER", type=bool)
+    ## Performance
+    opt_group.add_argument("--FLOAT", type=bool)
+    ## Dimensions
+    opt_group.add_argument("--X", type=bool)
+    opt_group.add_argument("--Y", type=bool)
+    opt_group.add_argument("--Z", type=bool)
+    ## Equation of state
+    opt_group.add_argument("--ADIABATIC", type=bool)
+    opt_group.add_argument("--ISOTHERMAL", type=bool)
+    ## Additional Physics:
+    opt_group.add_argument("--MHD", type=bool)
+    ### MHD
+    opt_group.add_argument("--STRICTSYM", type=bool)
+    opt_group.add_argument("--OHMICDIFFUSION", type=bool)
+    opt_group.add_argument("--AMBIPOLARDIFFUSION", type=bool)
+    opt_group.add_argument("--HALLEFFECT", type=bool)
+    ###
+    opt_group.add_argument("--VISCOSITY", type=bool)
+    opt_group.add_argument("--ALPHAVISCOSITY", type=bool)
+    opt_group.add_argument("--POTENTIAL", type=bool)
+    opt_group.add_argument("--STOCKHOLM", type=bool)
+    opt_group.add_argument("--HILLCUT", type=bool)
+    ## Coordinates
+    opt_group.add_argument("--CARTESIAN", type=bool)
+    opt_group.add_argument("--CYLINDRICAL", type=bool)
+    opt_group.add_argument("--SPHERICAL", type=bool)
+    ## Transport
+    opt_group.add_argument("--STANDARD", type=bool)
+    ## Slopes
+    opt_group.add_argument("--DONOR", type=bool)
+    ## Artificial Viscosity
+    opt_group.add_argument("--NOSUBSTEP2", type=bool)
+    opt_group.add_argument("--STRONG_SHOCK", type=bool)
+    ## Boundaries
+    opt_group.add_argument("--HARDBOUNDARIES", type=bool)
+    ## Outputs
+    opt_group.add_argument("--LEGACY", type=bool)
+    ## Cuda blocks
+    opt_group.add_argument("--BLOCK_X", type=int, default=16)
+    opt_group.add_argument("--BLOCK_Y", type=int, default=16)
+    opt_group.add_argument("--BLOCK_Z", type=int, default=1)
+    ## MONITOR
+    opt_group.add_argument("--MONITOR_2D", type=str, default="")
+    opt_group.add_argument("--MONITOR_Y", type=str, default="")
+    opt_group.add_argument("--MONITOR_Y_RAW", type=str, default="")
+    opt_group.add_argument("--MONITOR_Z", type=str, default="")
+    opt_group.add_argument("--MONITOR_Z_RAW", type=str, default="")
+    opt_group.add_argument("--MONITOR_SCALAR", type=str, default="")
 
     # par (reference: std/stdpar.par)
     par_group = parser.add_argument_group("par")

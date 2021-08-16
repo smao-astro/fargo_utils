@@ -1,4 +1,3 @@
-import importlib.resources
 import pathlib
 import shutil
 
@@ -7,7 +6,6 @@ from . import config
 from . import ic
 from . import opt
 from . import par
-from . import setup_base
 
 
 def create_setups(arg_groups: dict):
@@ -40,9 +38,10 @@ def create_setups(arg_groups: dict):
 
     # opt file
     opt_file = p / (arg_groups["par"].Setup + ".opt")
-    with importlib.resources.path(setup_base.opt, "base.opt") as base_opt:
-        shutil.copy(base_opt, opt_file)
-    opt.update_opt_file(opt_file, arg_groups["opt"])
+    # with importlib.resources.path(setup_base.opt, "base.opt") as base_opt:
+    #     shutil.copy(base_opt, opt_file)
+    # opt.update_opt_file(opt_file, arg_groups["opt"])
+    opt.write_opt_file(opt_file, arg_groups["opt"])
 
     # par file
     par_file = p / (arg_groups["optional arguments"].job_name + ".par")

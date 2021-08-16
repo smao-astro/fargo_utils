@@ -11,9 +11,23 @@
   VxYmax: KEPLERIAN2DVAZIM
   VyYmin: ANTISYMMETRIC
   VyYmax: ANTISYMMETRIC
-  
+
+  # opt
+  NFLUIDS: 1
   STOCKHOLM: yes
-  
+  X: yes
+  Y: yes
+  ISOTHERMAL: yes
+  CYLINDRICAL: yes
+  LEGACY: yes
+  POTENTIAL: yes
+  VISCOSITY: yes
+  BLOCK_X: 16
+  BLOCK_Y: 16
+  BLOCK_Z: 1
+  MONITOR_SCALAR: 'MASS | MOM_X | TORQ'
+  MONITOR_Y_RAW: 'TORQ'
+
   Setup: fargo2
   
   ### Disk parameters
