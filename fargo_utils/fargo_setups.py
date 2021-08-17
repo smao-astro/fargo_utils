@@ -1,4 +1,5 @@
 import pathlib
+import pickle
 import shutil
 
 from . import boundary
@@ -46,6 +47,10 @@ def create_setups(arg_groups: dict):
     # par file
     par_file = p / (arg_groups["optional arguments"].job_name + ".par")
     par.write_args(par_file, args={**vars(arg_groups["par"]), **vars(arg_groups["ic"])})
+
+    # save arg_groups
+    with open(p / "arg_groups.pkl", "wb") as f:
+        pickle.dump(arg_groups, f)
 
 
 if __name__ == "__main__":
