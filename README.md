@@ -1,4 +1,6 @@
 # fargo_utils
+## First step
+Please refer to [guild.ai](https://guild.ai) to install and setup guild.
 ## Get fargo3d source code
 ```bash
 guild run fargo:get_fargo
