@@ -101,11 +101,17 @@
       main: fargo_data_process.fargo_outputs2mat
       requires:
         - operation: run
+      flags-dest: args
+      flags-import: all
     to_movie:
       main: fargo_data_process.fargo_outputs2movie
       requires:
         - operation: run
+      flags-dest: args
+      flags-import: all
     to_grid_npz:
       main: fargo_data_process.fargo_outputs2grid_npz
       requires:
         - operation: run
+      flags-dest: args
+      flags-import: all
