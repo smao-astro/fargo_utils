@@ -1,3 +1,4 @@
+import functools
 import os
 import re
 from glob import glob
@@ -68,8 +69,9 @@ class Coor(object):
     def get_x_edge(self):
         # check whether x axis is used in fargo simulation
         assert int(self._setup["NX"]) != 1, "Warning: int(self._setup['NX']) == 1"
-        # check whether the shape match the parameter in variables.par
+
         x_edge = np.loadtxt(os.path.join(self._output_dir, "domain_x.dat"))
+        # check whether the shape match the parameter in variables.par
         assert x_edge.shape[0] - 1 == int(
             self._setup["NX"]
         ), "x coor shape do not match NX"
@@ -223,9 +225,8 @@ class GridData(object):
 
     def __init__(self, file_path: str, ny: int, nx: int):
         self.file_path = file_path
-        self._ny = ny
-        self._nx = nx
-        self._grid_value = None
+        self.ny = ny
+        self.nx = nx
 
     @property
     def phys_var_type(self) -> str:
@@ -244,7 +245,7 @@ class GridData(object):
                 "can not determine data file type, expect ['dens', 'vx', 'vy']"
             )
 
-    @property
+    @functools.cached_property
     def frame_index(self) -> int:
         """index that indicate the number of NINTERM (time) since start
 
@@ -254,16 +255,7 @@ class GridData(object):
         """
         return get_frame_index(self.file_path)
 
-    def __read_data(self) -> np.ndarray:
-        """
-
-        :return: (NY, NX, 1)
-        """
-        return np.fromfile(self.file_path, dtype=np.float).reshape(
-            self._ny, self._nx, 1
-        )
-
-    @property
+    @functools.cached_property
     def value(self) -> np.ndarray:
         """the value at every cell in the grid
 
@@ -273,10 +265,7 @@ class GridData(object):
 
         :return: (NY, NX, 1)
         """
-        # TODO I am not sure whether or not this is safe
-        if self._grid_value is None:
-            self._grid_value = self.__read_data()
-        return np.copy(self._grid_value)
+        return np.fromfile(self.file_path, dtype=np.float).reshape(self.ny, self.nx, 1)
 
     @property
     def mean_value_over_x(self) -> np.ndarray:
@@ -376,8 +365,8 @@ class FrameData(GridData):
     def to_cartesian(self, nxy):
         cartesian_to_polar = CartesianToPolar(
             nxy,
-            nr=self._ny,
-            ntheta=self._nx,
+            nr=self.ny,
+            ntheta=self.nx,
             rmin=self.ymin,
             rmax=self.ymax,
             theta_min=self.xmin,

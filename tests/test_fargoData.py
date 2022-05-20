@@ -1,7 +1,9 @@
+import os
+
 import numpy as np
 import pytest
 
-from fargo_data_process.fargoData import TimeSeqData, Coor
+from fargo_data_process.fargoData import TimeSeqData, Coor, GridData
 
 
 @pytest.fixture
@@ -12,6 +14,15 @@ def output_dir():
 def test_coor_get_x_edge(output_dir):
     coor = Coor(output_dir)
     assert coor.x_edge.shape == (int(coor._setup["NX"]) + 1,)
+
+
+def test_GridData(output_dir):
+    coor = Coor(output_dir)
+    nx = int(coor._setup["NX"])
+    ny = int(coor._setup["NY"])
+    griddata = GridData(os.path.join(output_dir, "gasdens0.dat"), ny, nx)
+
+    assert griddata.value.shape == (ny, nx, 1)
 
 
 def test_flt_x_ymin_t_value(output_dir):
