@@ -3,6 +3,7 @@ import re
 from glob import glob
 
 import matplotlib.animation as animation
+import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import skimage.transform
@@ -499,8 +500,17 @@ class TimeSeqData(object):
     def flt_rmax_theta_t_value(self) -> np.ndarray:
         return self.flt_x_ymax_t_value[:, [1, 0, 2, 3]]
 
-    def plot_mean_over_x(self, period_of_t_step, dt, figsize=(12, 9)):
+    def plot_mean_over_x(
+        self,
+        period_of_t_step,
+        figsize=plt.rcParams["figure.figsize"],
+        legend_prec: int = 3,
+        ymin=None,
+        ymax=None,
+    ) -> matplotlib.figure.Figure:
         value_list = [frame.mean_value_over_x for frame in self.frames]
+        value_list = value_list[::period_of_t_step]
+        t_list = self.t[::period_of_t_step]
 
         fig, ax = plt.subplots(1, 1, figsize=figsize)
         # get x axis
@@ -509,13 +519,14 @@ class TimeSeqData(object):
         else:
             x_axis = self.coor.y_center
 
-        for i, value in enumerate(value_list[::period_of_t_step]):
+        for i, (value, t) in enumerate(zip(value_list, t_list)):
             ax.plot(
                 x_axis,
                 value,
                 "-",
-                label=f"{(i *period_of_t_step* dt):.3f} orbit",
+                label=f"{t/(2.0 * np.pi):.{legend_prec}f} orbit",
             )
+        ax.set_ylim(ymin, ymax)
         plt.legend()
         return fig
 
@@ -559,10 +570,53 @@ class TimeSeqData(object):
                 plt.colorbar()  # Colorbar do not change over time
             artists.append([im, annotation])
 
-        ani = animation.ArtistAnimation(fig, artists, interval=100, repeat=False)
+        ani = animation.ArtistAnimation(fig, artists, interval=180, repeat=False)
         ani.save(
             os.path.join(self.output_dir, self.phys_var_type + "-simulated" + ".mp4")
         )
+
+    def get_single_frame_cartesian(self, nxy=1000):
+        # get vmin, vmax
+        values = self.flt_xyt_value[:, -1]
+        vmin = np.min(values)
+        vmax = np.max(values)
+
+        for i_step, frame in enumerate(self.frames):
+            plt.figure()
+            plt.xlabel(r"$x/R_0$")
+            plt.ylabel(r"$y/R_0$")
+            plt.title(f"{self.phys_var_type}")
+
+            plt.imshow(
+                frame.to_cartesian(nxy),
+                origin="lower",
+                extent=[
+                    -frame.ymax,
+                    frame.ymax,
+                    -frame.ymax,
+                    frame.ymax,
+                ],
+                aspect="equal",
+                vmin=vmin,
+                vmax=vmax,
+            )
+            plt.annotate(
+                f"t = {frame.time/(2*np.pi):.2f} orbit",
+                xy=(0.1, 0.1),
+                xycoords="axes fraction",
+                c="white",
+            )
+            plt.colorbar()
+
+            # save fig
+            plt.savefig(
+                fname=os.path.join(
+                    self.output_dir,
+                    self.phys_var_type + "-simulated-cartesian-" + str(i_step) + ".png",
+                ),
+                format="png",
+            )
+            plt.close()
 
     def get_single_animation_cartesian(self, nxy=1000):
         fig = plt.figure()
