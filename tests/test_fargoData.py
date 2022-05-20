@@ -41,6 +41,23 @@ def test_FrameData(output_dir):
     assert all(cri)
 
 
+def test_FrameData_xy_value(output_dir):
+    coor = Coor(output_dir)
+    framedata = FrameData(
+        os.path.join(output_dir, "gasdens0.dat"),
+        coor._setup,
+        coor.y_center,
+        coor.x_center,
+    )
+    r = framedata.xy_value[:, 0, 1]
+    cri = [
+        framedata.xy_value.shape == (framedata.ny, framedata.nx, 3),
+        np.amin(r) > 0.4,
+        np.amax(r) < 2.5,
+    ]
+    assert all(cri)
+
+
 def test_TimeSeqData_values(output_dir):
     tsdata = TimeSeqData(output_dir, "dens")
     ny = int(tsdata.setup["NY"])

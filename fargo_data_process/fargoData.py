@@ -469,6 +469,7 @@ class TimeSeqData(object):
         t, y, x, data = xr.broadcast(
             self.xarray.t, self.xarray.r, self.xarray.theta, self.xarray
         )
+        # data shape: (NT, NY, NX, 1)
         data = np.stack((x.values, y.values, t.values, data.values), axis=-1)
         return data.reshape((-1, 4))
 
@@ -551,15 +552,15 @@ class TimeSeqData(object):
 
         artists = []
         for t_step, file in enumerate(self.file_list):
-            frame = FrameData(file, self.setup, self.grid)
+            frame = FrameData(file, self.setup, self.y, self.x)
             im = plt.imshow(
                 frame.value,
                 aspect=self.grid.shape[1] / self.grid.shape[0],
                 extent=[
-                    np.min(self.grid[:, :, 0]),
-                    np.max(self.grid[:, :, 0]),
-                    np.max(self.grid[:, :, 1]),
-                    np.min(self.grid[:, :, 1]),
+                    np.min(self.x),
+                    np.max(self.x),
+                    np.max(self.y),
+                    np.min(self.y),
                 ],
                 vmin=vmin,
                 vmax=vmax,
@@ -635,7 +636,7 @@ class TimeSeqData(object):
 
         artists = []
         for t_step, file in enumerate(self.file_list):
-            frame = FrameData(file, self.setup, self.grid)
+            frame = FrameData(file, self.setup, self.y, self.x)
             im = plt.imshow(
                 frame.to_cartesian(nxy),
                 origin="lower",
