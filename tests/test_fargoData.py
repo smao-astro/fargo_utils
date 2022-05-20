@@ -27,15 +27,41 @@ def test_GridData(output_dir):
 
 def test_FrameData(output_dir):
     coor = Coor(output_dir)
-    nx = int(coor._setup["NX"])
-    ny = int(coor._setup["NY"])
     framedata = FrameData(
-        os.path.join(output_dir, "gasdens0.dat"), coor._setup, coor.grid_center
+        os.path.join(output_dir, "gasdens0.dat"),
+        coor._setup,
+        coor.y_center,
+        coor.x_center,
     )
     cri = [
         np.isclose(framedata.time, 0.0),
+        framedata.xy_value.shape == (framedata.ny, framedata.nx, 3),
         framedata.flt_xyt_value.shape == (framedata.ny * framedata.nx, 4),
     ]
+    assert all(cri)
+
+
+def test_TimeSeqData_values(output_dir):
+    tsdata = TimeSeqData(output_dir, "dens")
+    ny = int(tsdata.setup["NY"])
+    nx = int(tsdata.setup["NX"])
+    nt = len(tsdata.frames)
+    assert tsdata.values.shape == (nt, ny, nx, 1)
+
+
+def test_TimeSeqData_flt_xyt_value(output_dir):
+    tsdata = TimeSeqData(output_dir, "dens")
+    value = tsdata.flt_xyt_value
+
+    cri = [value.shape[1] == 4, np.amin(value[:, 1]) > 0.4]
+    assert all(cri)
+
+
+def test_TimeSeqData_flt_r_theta_t_value(output_dir):
+    tsdata = TimeSeqData(output_dir, "dens")
+    value = tsdata.flt_r_theta_t_value
+
+    cri = [value.shape[1] == 4, np.amin(value[:, 0]) > 0.4]
     assert all(cri)
 
 

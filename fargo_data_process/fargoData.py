@@ -8,6 +8,7 @@ import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import skimage.transform
+import xarray as xr
 
 
 def get_frame_index(file_path: str) -> int:
@@ -282,7 +283,7 @@ class FrameData(GridData):
 
     """
 
-    def __init__(self, file_path: str, setup: dict, grid):
+    def __init__(self, file_path: str, setup: dict, y, x):
         """
 
         :param file_path: the file path of FARGO3D outputs data
@@ -294,17 +295,25 @@ class FrameData(GridData):
         super(FrameData, self).__init__(
             file_path=file_path, ny=int(setup["NY"]), nx=int(setup["NX"])
         )
-        self.grid = grid
+        self.y = y
+        self.x = x
 
-    @property
+    @functools.cached_property
     def time(self) -> float:
         return self.frame_index * int(self.setup["NINTERM"]) * float(self.setup["DT"])
 
-    @property
+    @functools.cached_property
     def orbit(self) -> float:
         return self.time / (2 * np.pi)
 
-    @property
+    @functools.cached_property
+    def xarray(self):
+        value = self.value.reshape((1, self.ny, self.nx))
+        return xr.DataArray(
+            value, coords={"t": [self.time], "r": self.y, "theta": self.x}
+        )
+
+    @functools.cached_property
     def xy_value(self):
         """
 
@@ -312,9 +321,12 @@ class FrameData(GridData):
         shape (NY, NX, 3).
         """
         grid_value = self.value
-        return np.concatenate([self.grid, grid_value], axis=-1)
+        r, theta = xr.broadcast(self.xarray.r, self.xarray.theta)
+        return np.concatenate(
+            [theta.values[..., None], r.values[..., None], grid_value], axis=-1
+        )
 
-    @property
+    @functools.cached_property
     def flt_xy_value(self):
         """
 
@@ -322,7 +334,7 @@ class FrameData(GridData):
         """
         return np.vstack(self.xy_value)
 
-    @property
+    @functools.cached_property
     def xyt_value(self):
         """insert t to last axis, third column
 
@@ -330,33 +342,33 @@ class FrameData(GridData):
         """
         return np.insert(self.xy_value, obj=-1, values=self.time, axis=-1)
 
-    @property
+    @functools.cached_property
     def flt_xyt_value(self):
         return np.vstack(self.xyt_value)
 
-    @property
+    @functools.cached_property
     def x_ymin_t_value(self):
         return self.xyt_value[0]
 
-    @property
+    @functools.cached_property
     def x_ymax_t_value(self):
         return self.xyt_value[-1]
 
-    @property
+    @functools.cached_property
     def xmin(self):
-        return np.amin(self.grid[..., 0])
+        return np.amin(self.x)
 
-    @property
+    @functools.cached_property
     def xmax(self):
-        return np.amax(self.grid[..., 0])
+        return np.amax(self.x)
 
-    @property
+    @functools.cached_property
     def ymin(self):
-        return np.amin(self.grid[..., 1])
+        return np.amin(self.y)
 
-    @property
+    @functools.cached_property
     def ymax(self):
-        return np.amax(self.grid[..., 1])
+        return np.amax(self.y)
 
     def to_cartesian(self, nxy):
         cartesian_to_polar = CartesianToPolar(
@@ -384,14 +396,10 @@ class TimeSeqData(object):
         """
         self.output_dir = output_dir
         self.phys_var_type = phys_var_type
-        self._setup = get_setup(self.output_dir)
-        self._coor = Coor(self.output_dir)
+        self.setup = get_setup(self.output_dir)
+        self.coor = Coor(self.output_dir)
 
-    @property
-    def coor(self) -> Coor:
-        return self._coor
-
-    @property
+    @functools.cached_property
     def x(self) -> np.array:
         if self.phys_var_type == "dens":
             return self.coor.x_center
@@ -402,7 +410,7 @@ class TimeSeqData(object):
         else:
             raise KeyError(f"{self.phys_var_type}")
 
-    @property
+    @functools.cached_property
     def y(self) -> np.array:
         if self.phys_var_type == "dens":
             return self.coor.y_center
@@ -413,7 +421,7 @@ class TimeSeqData(object):
         else:
             raise KeyError(f"{self.phys_var_type}")
 
-    @property
+    @functools.cached_property
     def grid(self):
         if self.phys_var_type == "dens":
             return self.coor.grid_center
@@ -424,7 +432,7 @@ class TimeSeqData(object):
         else:
             raise KeyError(f"{self.phys_var_type}")
 
-    @property
+    @functools.cached_property
     def file_list(self):
         return sorted(
             glob(
@@ -433,20 +441,24 @@ class TimeSeqData(object):
             key=get_frame_index,
         )
 
-    @property
+    @functools.cached_property
     def frames(self):
-        return [FrameData(file, self._setup, self.grid) for file in self.file_list]
+        return [FrameData(file, self.setup, self.y, self.x) for file in self.file_list]
 
-    @property
+    @functools.cached_property
     def t(self):
         return np.array([frame.time for frame in self.frames])
 
-    @property
+    @functools.cached_property
+    def xarray(self):
+        return xr.concat([frame.xarray for frame in self.frames], "t")
+
+    @functools.cached_property
     def values(self):
         # (NT, NY, NX, 1)
-        return np.stack([frame.value for frame in self.frames], axis=0)
+        return self.xarray.values[..., None]
 
-    @property
+    @functools.cached_property
     def flt_xyt_value(self) -> np.ndarray:
         """the x, y, time and result of fargo outputs
 
@@ -454,20 +466,23 @@ class TimeSeqData(object):
 
         :return: (N, 4)
         """
-        data_list = [frame.flt_xyt_value for frame in self.frames]
-        return np.vstack(data_list)  # concatenate all the files (frames) vertically
+        t, y, x, data = xr.broadcast(
+            self.xarray.t, self.xarray.r, self.xarray.theta, self.xarray
+        )
+        data = np.stack((x.values, y.values, t.values, data.values), axis=-1)
+        return data.reshape((-1, 4))
 
-    @property
+    @functools.cached_property
     def flt_x_ymin_t_value(self) -> np.ndarray:
         data_list = [frame.x_ymin_t_value for frame in self.frames]
         return np.vstack(data_list)
 
-    @property
+    @functools.cached_property
     def flt_x_ymax_t_value(self) -> np.ndarray:
         data_list = [frame.x_ymax_t_value for frame in self.frames]
         return np.vstack(data_list)
 
-    @property
+    @functools.cached_property
     def flt_r_theta_t_value(self) -> np.ndarray:
         """the r, \theta, time and result of fargo outputs
 
@@ -475,13 +490,17 @@ class TimeSeqData(object):
 
         :return: (N, 4)
         """
-        return self.flt_xyt_value[:, [1, 0, 2, 3]]
+        t, y, x, data = xr.broadcast(
+            self.xarray.t, self.xarray.r, self.xarray.theta, self.xarray
+        )
+        data = np.stack((y.values, x.values, t.values, data.values), axis=-1)
+        return data.reshape((-1, 4))
 
-    @property
+    @functools.cached_property
     def flt_rmin_theta_t_value(self) -> np.ndarray:
         return self.flt_x_ymin_t_value[:, [1, 0, 2, 3]]
 
-    @property
+    @functools.cached_property
     def flt_rmax_theta_t_value(self) -> np.ndarray:
         return self.flt_x_ymax_t_value[:, [1, 0, 2, 3]]
 
@@ -532,7 +551,7 @@ class TimeSeqData(object):
 
         artists = []
         for t_step, file in enumerate(self.file_list):
-            frame = FrameData(file, self._setup, self.grid)
+            frame = FrameData(file, self.setup, self.grid)
             im = plt.imshow(
                 frame.value,
                 aspect=self.grid.shape[1] / self.grid.shape[0],
@@ -616,7 +635,7 @@ class TimeSeqData(object):
 
         artists = []
         for t_step, file in enumerate(self.file_list):
-            frame = FrameData(file, self._setup, self.grid)
+            frame = FrameData(file, self.setup, self.grid)
             im = plt.imshow(
                 frame.to_cartesian(nxy),
                 origin="lower",
