@@ -1,18 +1,28 @@
 - model: fargo
   sourcecode:
+    - include:
+        - fargo_utils
+        - fargo_data_process
+        - jaxdisk2D
+        - '**.py'
     - exclude:
-        dir: fargo3d
-    - exclude:
-        dir: tmp
-    - exclude:
-        dir: tests
+        dir:
+          - fargo3d
+          - tmp
+          - tests
+          - job
+          - runs
+          - __pycache__
     - exclude: '*.ipynb'
+    - exclude: '*.cfg'
+    - exclude: '*.out'
+    - exclude: '*.csv'
 
   operations:
     get_fargo:
       exec: bash -c "git clone --depth 1 https://bitbucket.org/fargo3d/public.git fargo3d && rm -rf fargo3d/.git"
 
-    setups:
+    run:
       main: fargo_utils.fargo_setups
       flags-dest: args
       flags-import: all
@@ -20,98 +30,61 @@
         - operation: get_fargo
           target-type: copy
 
-    make:
-      exec: bash -c "
-            cd fargo3d &&
-            make SETUP=${SETUP} \
-              BIGMEM=${BIGMEM} \
-              RESCALE=${RESCALE} \
-              PROFILING=${PROFILING} \
-              PARALLEL=${PARALLEL} \
-              MPICUDA=${MPICUDA} \
-              GPU=${GPU} \
-              DEBUG=${DEBUG} \
-              FULLDEBUG=${FULLDEBUG} \
-              FARGO_DISPLAY=${FARGO_DISPLAY} \
-              UNITS=${UNITS} \
-              GHOSTSX=${GHOSTSX} \
-              LONGSUMMARY=${LONGSUMMARY}"
-
-      requires:
-        - operation: setups
-          target-type: copy
-      flags:
-        # from std/defaultflags
-        SETUP:
-          required: yes
-        BIGMEM:
-          choices: [0, 1]
-          default: 1
-        RESCALE:
-          choices: [0, 1]
-          default: 0
-        PROFILING:
-          choices: [0, 1]
-          default: 0
-        PARALLEL:
-          choices: [0, 1]
-          default: 0
-        MPICUDA:
-          choices: [0, 1]
-          default: 0
-        GPU:
-          choices: [0, 1]
-          default: 0
-        DEBUG:
-          choices: [0, 1]
-          default: 0
-        FULLDEBUG:
-          choices: [0, 1]
-          default: 0
-        FARGO_DISPLAY:
-          choices: ['NONE', 'MATPLOTLIB']
-          default: 'NONE'
-        UNITS:
-          choices: ['0', 'MKS', 'CGS']
-          default: '0'
-        GHOSTSX:
-          choices: [0, 1]
-          default: 0
-        LONGSUMMARY:
-          choices: [0, 1]
-          default: 0
-
-    run:
-      exec: bash -c "cd fargo3d && ./fargo3d setups/${SETUP}/${JOBNAME}.par"
-      requires:
-        - operation: make
-          target-type: copy
-      flags:
-        SETUP:
-        JOBNAME:
-
     # post-processing
+    # target-type of to_npz should be copy so that pinn:train can find the files needed.
     to_npz:
       main: fargo_data_process.fargo_outputs2npz
       requires:
         - operation: run
+          target-type: copy
       flags-dest: args
       flags-import: all
     to_mat:
       main: fargo_data_process.fargo_outputs2mat
       requires:
         - operation: run
+          target-type: link
+      flags-dest: args
+      flags-import: all
+    to_variance:
+      main: fargo_data_process.fargo_outputs2variance
+      requires:
+        - operation: run
+          target-type: link
+      flags-dest: args
+      flags-import: all
+    to_radial_plot:
+      main: fargo_data_process.fargo_outputs2radial_plot
+      requires:
+        - operation: run
+          target-type: link
+      flags-dest: args
+      flags-import: all
+    to_radial_movie:
+      main: fargo_data_process.fargo_outputs2radial_movie
+      requires:
+        - operation: run
+          target-type: link
       flags-dest: args
       flags-import: all
     to_movie:
       main: fargo_data_process.fargo_outputs2movie
       requires:
         - operation: run
+          target-type: link
+      flags-dest: args
+      flags-import: all
+    to_frames:
+      main: fargo_data_process.fargo_outputs2frames
+      requires:
+        - operation: run
+          target-type: link
       flags-dest: args
       flags-import: all
     to_grid_npz:
       main: fargo_data_process.fargo_outputs2grid_npz
       requires:
         - operation: run
+          target-type: copy
       flags-dest: args
       flags-import: all

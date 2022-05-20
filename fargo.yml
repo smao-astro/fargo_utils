@@ -74,7 +74,7 @@
   Ninterm: 20
   Ntot: 1000
   
-  OutputDir: '@outputs/fargo2'
+  OutputDir: '@outputs'
   
   ### Plotting parameters
   
