@@ -553,18 +553,21 @@ class TimeSeqData(object):
         vmin = np.min(values)
         vmax = np.max(values)
 
+        aspect = (np.max(self.x) - np.min(self.x)) / (np.max(self.y) - np.min(self.y))
+        extent = [
+            np.min(self.x),
+            np.max(self.x),
+            np.max(self.y),
+            np.min(self.y),
+        ]
+
         artists = []
         for t_step, file in enumerate(self.file_list):
             frame = FrameData(file, self.setup, self.y, self.x)
             im = plt.imshow(
                 frame.value,
-                aspect=self.grid.shape[1] / self.grid.shape[0],
-                extent=[
-                    np.min(self.x),
-                    np.max(self.x),
-                    np.max(self.y),
-                    np.min(self.y),
-                ],
+                aspect=aspect,
+                extent=extent,
                 vmin=vmin,
                 vmax=vmax,
             )
