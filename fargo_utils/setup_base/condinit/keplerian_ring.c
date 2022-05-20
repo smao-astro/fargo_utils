@@ -29,10 +29,12 @@ void Init() {
 
       r = Ymed(j);
       omega = sqrt(G * MSTAR / r / r / r);
+      real inverse_exp_part =
+          pow(M_E, -0.5 * pow((r - RINGCENTER) / RINGWIDTH, 2.0));
 
       rho[l] = SIGMA0 *
-               (1.0 + pow(M_E, -0.5 * pow((r - RINGCENTER) / RINGWIDTH, 2.0)) /
-                          (RINGWIDTH * sqrt(2 * M_PI)));
+               (1.0 + inverse_exp_part / (RINGWIDTH * sqrt(2 * M_PI))) *
+               (1.0 + NOISE * (drand48() - .5));
       soundspeed = ASPECTRATIO * pow(r / R0, FLARINGINDEX) * omega * r;
 
 #ifdef ISOTHERMAL
@@ -44,16 +46,13 @@ void Init() {
 
       vphi[l] = omega * r;
       vphi[l] -= OMEGAFRAME * r;
+      vphi[l] *= (1. + ASPECTRATIO * NOISE * (drand48() - .5));
 
-      real inverse_exp_part =
-          pow(M_E, -0.5 * pow((r - RINGCENTER) / RINGWIDTH, 2.0));
       real part = (RINGWIDTH * RINGWIDTH) *
                   (sqrt(2.0) * inverse_exp_part + 2.0 * sqrt(M_PI) * RINGWIDTH);
-      vr[l] = 3.0 * NU *
-              ((2.0 * sqrt(2.0) * r * r - 2.0 * sqrt(2.0) * r * RINGCENTER) *
-                   inverse_exp_part -
-               part) /
-              (2.0 * r * part);
+      vr[l] =
+          -3.0 * NU / (2.0 * r) +
+          (3.0 * sqrt(2.0) * NU * (r - RINGCENTER) * inverse_exp_part) / part;
     }
   }
 }

@@ -1,4 +1,6 @@
+import os
 import pathlib
+import subprocess
 import pickle
 import shutil
 
@@ -57,3 +59,31 @@ if __name__ == "__main__":
     arg_groups = config.get_arg_groups()
     print(arg_groups)
     create_setups(arg_groups)
+    # cd fargo3d
+    os.chdir("fargo3d")
+    # make
+    make_command = [
+        "make",
+        f"SETUP={arg_groups['par'].Setup}",
+        f"BIGMEM={arg_groups['make'].BIGMEM}",
+        f"RESCALE={arg_groups['make'].RESCALE}",
+        f"PROFILING={arg_groups['make'].PROFILING}",
+        f"PARALLEL={arg_groups['make'].PARALLEL}",
+        f"MPICUDA={arg_groups['make'].MPICUDA}",
+        f"GPU={arg_groups['make'].GPU}",
+        f"DEBUG={arg_groups['make'].DEBUG}",
+        f"FULLDEBUG={arg_groups['make'].FULLDEBUG}",
+        f"FARGO_DISPLAY={arg_groups['make'].FARGO_DISPLAY}",
+        f"UNITS={arg_groups['make'].UNITS}",
+        f"GHOSTSX={arg_groups['make'].GHOSTSX}",
+        f"LONGSUMMARY={arg_groups['make'].LONGSUMMARY}",
+    ]
+    print(make_command)
+    subprocess.run(make_command)
+    # run
+    subprocess.run(
+        [
+            "./fargo3d",
+            f"setups/{arg_groups['par'].Setup}/{arg_groups['optional arguments'].job_name}.par",
+        ]
+    )

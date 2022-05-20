@@ -173,7 +173,9 @@ def get_parser():
     par_group.add_argument("--SemiMajorAxis", type=float)
 
     par_group.add_argument("--FuncArchFile")
-    par_group.add_argument("--Setup", required=True, help="The name of the hole setup directory.")
+    par_group.add_argument(
+        "--Setup", required=True, help="The name of the whole setup directory."
+    )
 
     par_group.add_argument("--Nsnap", type=int)
     par_group.add_argument("--WriteDensity", choices=["yes", "no"])
@@ -197,6 +199,23 @@ def get_parser():
     # ring specific args
     par_group.add_argument("--RingCenter", type=float)
     par_group.add_argument("--RingWidth", type=float)
+
+    # make
+    make_group = parser.add_argument_group("make")
+    make_group.add_argument("--BIGMEM", type=int, default=1)
+    make_group.add_argument("--RESCALE", type=int, default=0)
+    make_group.add_argument("--PROFILING", type=int, default=0)
+    make_group.add_argument("--PARALLEL", type=int, default=0)
+    make_group.add_argument("--MPICUDA", type=int, default=0)
+    make_group.add_argument("--GPU", type=int, default=0)
+    make_group.add_argument("--DEBUG", type=int, default=0)
+    make_group.add_argument("--FULLDEBUG", type=int, default=0)
+    make_group.add_argument(
+        "--FARGO_DISPLAY", choices=["NONE", "MATPLOTLIB"], default="NONE"
+    )
+    make_group.add_argument("--UNITS", choices=["0", "MKS", "CGS"], default="0")
+    make_group.add_argument("--GHOSTSX", type=int, default=0)
+    make_group.add_argument("--LONGSUMMARY", type=int, default=0)
 
     # TODO unrecognised args should go to par?
 
