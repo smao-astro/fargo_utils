@@ -39,6 +39,13 @@
           target-type: copy
       flags-dest: args
       flags-import: all
+    to_xarray:
+      main: fargo_data_process.fargo_outputs2xarray
+      requires:
+        - operation: run
+          target-type: copy
+      flags-dest: args
+      flags-import: all
     to_mat:
       main: fargo_data_process.fargo_outputs2mat
       requires:

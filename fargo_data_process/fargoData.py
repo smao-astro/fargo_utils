@@ -451,7 +451,10 @@ class TimeSeqData(object):
 
     @functools.cached_property
     def xarray(self):
-        return xr.concat([frame.xarray for frame in self.frames], "t")
+        array = xr.concat([frame.xarray for frame in self.frames], "t")
+        array.attrs = self.setup
+        array.attrs["phys_var_type"] = self.phys_var_type
+        return array
 
     @functools.cached_property
     def values(self):
