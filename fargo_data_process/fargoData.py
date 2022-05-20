@@ -290,7 +290,7 @@ class FrameData(GridData):
             setup = get_setup(output_dir)
         :param grid: Array that contain the coordinate value of grid, shape (NY, NX, 2).
         """
-        self._setup = setup
+        self.setup = setup
         super(FrameData, self).__init__(
             file_path=file_path, ny=int(setup["NY"]), nx=int(setup["NX"])
         )
@@ -298,15 +298,11 @@ class FrameData(GridData):
 
     @property
     def time(self) -> float:
-        return self.frame_index * int(self._setup["NINTERM"]) * float(self._setup["DT"])
+        return self.frame_index * int(self.setup["NINTERM"]) * float(self.setup["DT"])
 
     @property
     def orbit(self) -> float:
         return self.time / (2 * np.pi)
-
-    @property
-    def setup(self) -> dict:
-        return self._setup
 
     @property
     def xy_value(self):

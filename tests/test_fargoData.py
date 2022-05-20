@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pytest
 
-from fargo_data_process.fargoData import TimeSeqData, Coor, GridData
+from fargo_data_process.fargoData import TimeSeqData, Coor, GridData, FrameData
 
 
 @pytest.fixture
@@ -23,6 +23,20 @@ def test_GridData(output_dir):
     griddata = GridData(os.path.join(output_dir, "gasdens0.dat"), ny, nx)
 
     assert griddata.value.shape == (ny, nx, 1)
+
+
+def test_FrameData(output_dir):
+    coor = Coor(output_dir)
+    nx = int(coor._setup["NX"])
+    ny = int(coor._setup["NY"])
+    framedata = FrameData(
+        os.path.join(output_dir, "gasdens0.dat"), coor._setup, coor.grid_center
+    )
+    cri = [
+        np.isclose(framedata.time, 0.0),
+        framedata.flt_xyt_value.shape == (framedata.ny * framedata.nx, 4),
+    ]
+    assert all(cri)
 
 
 def test_flt_x_ymin_t_value(output_dir):
