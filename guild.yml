@@ -46,6 +46,12 @@
           target-type: copy
       flags-dest: args
       flags-import: all
+    collect_xarrays:
+      main: fargo_data_process.fargo_collect_xarrays
+      flags-dest: args
+      flags-import: all
+      requires:
+        file: 'fargo_runs.yml'
     to_mat:
       main: fargo_data_process.fargo_outputs2mat
       requires:
