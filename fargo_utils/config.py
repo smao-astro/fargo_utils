@@ -1,4 +1,6 @@
 import argparse
+import pathlib
+import yaml
 import math
 import re
 
@@ -249,3 +251,31 @@ def get_arg_groups(args=None):
         arg_groups[group.title] = argparse.Namespace(**group_dict)
 
     return arg_groups
+
+
+def save_arg_groups(arg_groups: dict, file_path):
+    # to dict
+    arg_groups = {k: vars(v) for k, v in arg_groups.items()}
+
+    file_path = pathlib.Path(file_path)
+
+    if file_path.exists():
+        raise FileExistsError(f"{file_path}")
+    if not file_path.parent.is_dir():
+        raise NotADirectoryError()
+
+    with file_path.open("w") as f:
+        yaml.safe_dump(arg_groups, f)
+
+
+def load_arg_groups(file_path):
+    file_path = pathlib.Path(file_path)
+
+    if not file_path.exists():
+        raise FileNotFoundError(f"{file_path}")
+
+    with file_path.open("r") as f:
+        arg_groups: dict = yaml.safe_load(f)
+
+    # todo to namespace
+    return {k: argparse.Namespace(**v) for k, v in arg_groups.items()}

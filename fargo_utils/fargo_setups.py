@@ -54,11 +54,14 @@ def create_setups(arg_groups: dict):
     with open(p / "arg_groups.pkl", "wb") as f:
         pickle.dump(arg_groups, f)
 
+    return p
+
 
 if __name__ == "__main__":
     arg_groups = config.get_arg_groups()
     print(arg_groups)
-    create_setups(arg_groups)
+    p = create_setups(arg_groups)
+    config.save_arg_groups(arg_groups, p / "arg_groups.yml")
     # cd fargo3d
     os.chdir("fargo3d")
     # make
