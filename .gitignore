@@ -4,3 +4,7 @@ __pycache__
 tmp/
 guild_home/
 *.pyc
+.venv/
+build/
+*.gz
+*.whl
