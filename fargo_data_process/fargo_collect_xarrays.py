@@ -1,4 +1,5 @@
 import argparse
+import shutil
 import pathlib
 
 import xarray as xr
@@ -93,6 +94,14 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
 
         # save to file
         xarrays.to_netcdf(save_dir / f"batch_test_{phys_var_type}.nc")
+
+    # save a arg_groups.yml
+    run0 = fargo_runs['runs'][0]
+    arg_groups_file = f"{run0}*/fargo3d/setups/*/arg_groups.yml"
+    arg_groups_file = list(
+        runs_dir.glob(arg_groups_file)
+    )[0]
+    shutil.copy(arg_groups_file, save_dir)
 
 
 if __name__ == "__main__":
