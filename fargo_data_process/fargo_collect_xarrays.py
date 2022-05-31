@@ -10,8 +10,17 @@ def get_config():
     parser.add_argument("--runs_dir", type=str, default=".")
     parser.add_argument("--yaml_file", type=str, default="fargo_runs.yml")
     parser.add_argument("--save_dir", type=str, default=".")
+    parser.add_argument(
+        "--collecting_mode", type=str, choices=["all", "last_t_frame"], default="all"
+    )
     config = parser.parse_args()
     return config
+
+
+def select_last_time_frame(data: xr.DataArray):
+    data = data.isel(t=-1)
+    data = data.drop("t")
+    return data
 
 
 def yaml_file_check(fargo_runs):
@@ -19,7 +28,7 @@ def yaml_file_check(fargo_runs):
     return all(cri)
 
 
-def main(runs_dir, yaml_file, save_dir):
+def main(runs_dir, yaml_file, save_dir, collecting_mode):
     """Collect all fargo runs, concat data to one file.
 
     Args:
@@ -52,9 +61,6 @@ def main(runs_dir, yaml_file, save_dir):
             outputs_dir.append(run_outputs_dir)
         else:
             raise ValueError(f"run id={run}, failed to match run dir.")
-    # outputs_dir = [
-    #     list(runs_dir.glob(f"{run}*/fargo3d/outputs"))[0] for run in fargo_runs["runs"]
-    # ]
 
     # only support single parameter
     if len(fargo_runs["parameters"]) > 1:
@@ -63,9 +69,20 @@ def main(runs_dir, yaml_file, save_dir):
 
     for phys_var_type in ["dens", "vy", "vx"]:
         # load xarrays
-        xarrays = [
-            xr.load_dataarray(odir / f"test_{phys_var_type}.nc") for odir in outputs_dir
-        ]
+        if collecting_mode == "all":
+            xarrays = [
+                xr.load_dataarray(odir / f"test_{phys_var_type}.nc")
+                for odir in outputs_dir
+            ]
+        elif collecting_mode == "last_t_frame":
+            xarrays = [
+                select_last_time_frame(
+                    xr.load_dataarray(odir / f"test_{phys_var_type}.nc")
+                )
+                for odir in outputs_dir
+            ]
+        else:
+            raise NotImplementedError
         new_dim = xr.DataArray(
             [float(array.attrs[parameter]) for array in xarrays], dims=parameter
         )
@@ -80,4 +97,4 @@ def main(runs_dir, yaml_file, save_dir):
 
 if __name__ == "__main__":
     config = get_config()
-    main(config.runs_dir, config.yaml_file, config.save_dir)
+    main(config.runs_dir, config.yaml_file, config.save_dir, config.collecting_mode)
