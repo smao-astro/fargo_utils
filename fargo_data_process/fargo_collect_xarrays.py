@@ -1,6 +1,6 @@
 import argparse
-import shutil
 import pathlib
+import shutil
 
 import xarray as xr
 import yaml
@@ -68,6 +68,7 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
         raise NotImplementedError
     parameter = fargo_runs["parameters"][0]
 
+    fargo_setups = None
     for phys_var_type in ["dens", "vy", "vx"]:
         # load xarrays
         if collecting_mode == "all":
@@ -91,16 +92,20 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
         xarrays = xr.concat(xarrays, dim=new_dim)
         # update attributes
         xarrays.attrs.pop(parameter)
+        if fargo_setups is None:
+            fargo_setups = xarrays.attrs
+            fargo_setups.pop("phys_var_type")
 
         # save to file
         xarrays.to_netcdf(save_dir / f"batch_test_{phys_var_type}.nc")
 
+    # save fargo_setups
+    with (save_dir / "fargo_setups.yml").open("w") as f:
+        yaml.safe_dump(fargo_setups, f)
     # save a arg_groups.yml
-    run0 = fargo_runs['runs'][0]
+    run0 = fargo_runs["runs"][0]
     arg_groups_file = f"{run0}*/fargo3d/setups/*/arg_groups.yml"
-    arg_groups_file = list(
-        runs_dir.glob(arg_groups_file)
-    )[0]
+    arg_groups_file = list(runs_dir.glob(arg_groups_file))[0]
     shutil.copy(arg_groups_file, save_dir)
 
 
