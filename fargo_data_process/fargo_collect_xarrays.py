@@ -97,7 +97,7 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
             fargo_setups.pop("phys_var_type")
 
         # save to file
-        xarrays.to_netcdf(save_dir / f"batch_test_{phys_var_type}.nc")
+        xarrays.to_netcdf(save_dir / f"batch_truth_{phys_var_type}.nc")
 
     # save fargo_setups
     with (save_dir / "fargo_setups.yml").open("w") as f:
