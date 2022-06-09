@@ -69,7 +69,9 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
     parameter = fargo_runs["parameters"][0]
 
     fargo_setups = None
-    for phys_var_type in ["dens", "vy", "vx"]:
+    for new_phys_var_type, phys_var_type in zip(
+        ["sigma", "v_r", "v_theta"], ["dens", "vy", "vx"]
+    ):
         # load xarrays
         if collecting_mode == "all":
             xarrays = [
@@ -97,7 +99,7 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
             fargo_setups.pop("phys_var_type")
 
         # save to file
-        xarrays.to_netcdf(save_dir / f"batch_truth_{phys_var_type}.nc")
+        xarrays.to_netcdf(save_dir / f"batch_truth_{new_phys_var_type}.nc")
 
     # save fargo_setups
     with (save_dir / "fargo_setups.yml").open("w") as f:
