@@ -19,9 +19,10 @@ def get_config():
 
 
 def select_last_time_frame(data: xr.DataArray):
-    data = data.isel(t=-1)
-    data = data.drop("t")
-    return data
+    data_t = data.isel(t=-1)
+    data.close()
+    data_t = data_t.drop("t")
+    return data_t
 
 
 def yaml_file_check(fargo_runs):
@@ -81,7 +82,7 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
         elif collecting_mode == "last_t_frame":
             xarrays = [
                 select_last_time_frame(
-                    xr.load_dataarray(odir / f"test_{phys_var_type}.nc")
+                    xr.open_dataarray(odir / f"test_{phys_var_type}.nc")
                 )
                 for odir in outputs_dir
             ]
