@@ -22,13 +22,27 @@
     get_fargo:
       exec: bash -c "git clone --depth 1 https://bitbucket.org/fargo3d/public.git fargo3d && rm -rf fargo3d/.git"
 
-    run:
+    setup:
       main: fargo_utils.fargo_setups
       flags-dest: args
       flags-import: all
       requires:
         - operation: get_fargo
           target-type: copy
+
+    run:
+      main: fargo_utils.fargo_run
+      flags-dest: args
+      flags-import: all
+      requires:
+        - operation: setup
+          target-type: copy
+          target-path: fargo3d
+          select:
+            - fargo3d/fargo3d
+            - fargo3d/planets
+            - fargo3d/std/func_arch.cfg
+            - fargo3d/arg_groups.yml
 
     # post-processing
     # target-type of to_npz should be copy so that pinn:train can find the files needed.

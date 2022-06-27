@@ -5,13 +5,9 @@ Please refer to [guild.ai](https://guild.ai) to install and setup guild.
 ```bash
 guild run fargo:get_fargo
 ```
-## Configure fargo3d/setups/SETUP
+## Configure fargo3d/setups/SETUP and make
 ```bash
-guild run fargo:setups @fargo.yml
-```
-## fargo3d make process
-```bash
-guild run fargo:make SETUP=fargo2
+guild run fargo:setup @fargo_make.yml
 ```
 ## run the simulation
 ```bash

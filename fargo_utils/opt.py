@@ -63,8 +63,11 @@ def write_opt_file(opt_file, opts: dict or argparse.Namespace):
     lines += cuda_blocks
 
     # MONITOR
+    v: str
     for k, v in opts.items():
         if k.startswith("MONITOR") and len(v) > 0:
+            v = v.rstrip("'")
+            v = v.lstrip("'")
             lines.append(f"{k} = {v}")
 
     with open(opt_file, "w") as f:

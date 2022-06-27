@@ -29,6 +29,9 @@ def get_parser():
     parser.add_argument(
         "--setups_dir", type=str, required=True, help="the path of setups/"
     )
+    parser.add_argument(
+        "--Setup", required=True, help="The name of the whole setup directory."
+    )
     parser.add_argument("--job_name", required=True, help="The name of par file.")
 
     ic_group = parser.add_argument_group("ic")
@@ -103,105 +106,6 @@ def get_parser():
     opt_group.add_argument("--MONITOR_Z_RAW", type=str, default="")
     opt_group.add_argument("--MONITOR_SCALAR", type=str, default="")
 
-    # par (reference: std/stdpar.par)
-    par_group = parser.add_argument_group("par")
-    par_group.add_argument("--Nx", type=int)
-    par_group.add_argument("--Ny", type=int)
-    par_group.add_argument("--Nz", type=int)
-    par_group.add_argument("--Xmin", type=float, default=-math.pi)
-    par_group.add_argument("--Xmax", type=float, default=math.pi)
-    par_group.add_argument("--Ymin", type=float)
-    par_group.add_argument("--Ymax", type=float)
-    par_group.add_argument("--Zmin", type=float)
-    par_group.add_argument("--Zmax", type=float)
-    par_group.add_argument("--Oorta", type=float)
-    par_group.add_argument("--SigmaSlope", type=float)
-    par_group.add_argument("--Eccentricity", type=float)
-    par_group.add_argument("--Inclination")
-    par_group.add_argument("--ThicknessSmoothing", type=float)
-    par_group.add_argument("--RocheSmoothing", type=float)
-    par_group.add_argument("--AspectRatio", type=float)
-    par_group.add_argument("--Sigma0", type=float)
-    par_group.add_argument("--FlaringIndex", type=float)
-    par_group.add_argument("--Nu", type=float)
-    par_group.add_argument("--Cs", type=float)
-    par_group.add_argument("--Frame", choices=["F", "C", "G"])
-    par_group.add_argument("--OmegaFrame", type=float)
-    par_group.add_argument("--IndirectTerm", choices=["yes", "no"])
-    par_group.add_argument("--ExcludeHill", choices=["yes", "no"])
-    par_group.add_argument("--MassTaper", type=float)
-    par_group.add_argument("--Noise", type=float)
-    par_group.add_argument("--VerticalDamping", type=float)
-    par_group.add_argument("--Spacing")
-    par_group.add_argument("--Coordinates")
-    par_group.add_argument("--Gamma", type=float)
-    par_group.add_argument("--Alpha", type=float)
-    par_group.add_argument("--PlanetConfig", type=str)
-    par_group.add_argument("--PeriodicZ", choices=["yes", "no"])
-    par_group.add_argument("--PeriodicY", choices=["yes", "no"])
-
-    par_group.add_argument("--OhmicDiffusionCoeff", type=float)
-    par_group.add_argument("--HallEffectCoeff", type=float)
-    par_group.add_argument("--AmbipolarDiffusionCoeff", type=float)
-
-    par_group.add_argument("--Resonance", type=float)
-
-    par_group.add_argument("--DampingZone", type=float)
-    par_group.add_argument("--TauDamp", type=float)
-
-    par_group.add_argument("--KillingBCColatitude", type=float)
-
-    par_group.add_argument("--Beta", type=float)
-    par_group.add_argument("--CFL", type=float)
-
-    par_group.add_argument("--Vtk", choices=["yes", "no"])
-    par_group.add_argument("--RealType", choices=["Standard", "float", "double"])
-
-    par_group.add_argument("--PlanetMass", type=float)
-    par_group.add_argument("--Field")
-    par_group.add_argument("--Cmap")
-
-    par_group.add_argument("--PlotLog", choices=["yes", "no"])
-    par_group.add_argument("--Colorbar", choices=["yes", "no"])
-    par_group.add_argument("--Autocolor", choices=["yes", "no"])
-    par_group.add_argument("--Aspect")
-    par_group.add_argument("--vmin", type=float)
-    par_group.add_argument("--vmax", type=float)
-    par_group.add_argument("--PlotLine")
-
-    par_group.add_argument("--OrbitalRadius", type=float)
-    par_group.add_argument("--ReleaseDate", type=float)
-    par_group.add_argument("--ReleaseRadius", type=float)
-    par_group.add_argument("--SemiMajorAxis", type=float)
-
-    par_group.add_argument("--FuncArchFile")
-    par_group.add_argument(
-        "--Setup", required=True, help="The name of the whole setup directory."
-    )
-
-    par_group.add_argument("--Nsnap", type=int)
-    par_group.add_argument("--WriteDensity", choices=["yes", "no"])
-    par_group.add_argument("--WriteEnergy", choices=["yes", "no"])
-    par_group.add_argument("--WriteBx", choices=["yes", "no"])
-    par_group.add_argument("--WriteBy", choices=["yes", "no"])
-    par_group.add_argument("--WriteBz", choices=["yes", "no"])
-    par_group.add_argument("--WriteVx", choices=["yes", "no"])
-    par_group.add_argument("--WriteVy", choices=["yes", "no"])
-    par_group.add_argument("--WriteVz", choices=["yes", "no"])
-    par_group.add_argument("--WriteDivergence", choices=["yes", "no"])
-    par_group.add_argument("--WriteEnergyRad", choices=["yes", "no"])
-    par_group.add_argument("--WriteTau", choices=["yes", "no"])
-
-    # not in std/stdpar.par
-    par_group.add_argument("--DT", type=float, default=math.pi / 100.0)
-    par_group.add_argument("--Ninterm", type=int)
-    par_group.add_argument("--Ntot", type=int)
-    par_group.add_argument("--OutputDir", type=str)
-
-    # ring specific args
-    par_group.add_argument("--RingCenter", type=float)
-    par_group.add_argument("--RingWidth", type=float)
-
     # make
     make_group = parser.add_argument_group("make")
     make_group.add_argument("--BIGMEM", type=int, default=1)
@@ -242,7 +146,7 @@ def get_arg_groups(args=None):
     parser = get_parser()
     args = parser.parse_args(args)
 
-    check_dampling_setup(args)
+    # check_dampling_setup(args)
 
     arg_groups = {}
 
@@ -277,5 +181,5 @@ def load_arg_groups(file_path):
     with file_path.open("r") as f:
         arg_groups: dict = yaml.safe_load(f)
 
-    # todo to namespace
+    # to namespace
     return {k: argparse.Namespace(**v) for k, v in arg_groups.items()}

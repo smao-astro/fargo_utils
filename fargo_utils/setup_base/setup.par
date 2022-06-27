@@ -1,0 +1,4 @@
+DT			0.314159265359	Physical time between fine-grain outputs
+Ninterm	 		20		Number of DTs between scalar fields outputs
+Ntot			100
+OutputDir               @outputs

@@ -107,7 +107,7 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
         yaml.safe_dump(fargo_setups, f)
     # save a arg_groups.yml
     run0 = fargo_runs["runs"][0]
-    arg_groups_file = f"{run0}*/fargo3d/setups/*/arg_groups.yml"
+    arg_groups_file = f"{run0}*/fargo3d/arg_groups.yml"
     arg_groups_file = list(runs_dir.glob(arg_groups_file))[0]
     shutil.copy(arg_groups_file, save_dir)
 

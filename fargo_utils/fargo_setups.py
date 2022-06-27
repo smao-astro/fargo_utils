@@ -1,21 +1,22 @@
 import os
 import pathlib
-import subprocess
 import pickle
 import shutil
+import subprocess
+import importlib.resources
 
+from . import setup_base
 from . import boundary
 from . import config
 from . import ic
 from . import opt
-from . import par
 
 
 def create_setups(arg_groups: dict):
     # set setups dir
     p = (
         pathlib.Path(arg_groups["optional arguments"].setups_dir)
-        / arg_groups["par"].Setup
+        / arg_groups["optional arguments"].Setup
     )
     # check exists
     if p.exists():
@@ -25,11 +26,11 @@ def create_setups(arg_groups: dict):
 
     # bound file
     bound_args = boundary.cfg_to_nested_dict(arg_groups["bc"])
-    bound_file = p / (arg_groups["par"].Setup + ".bound")
+    bound_file = p / (arg_groups["optional arguments"].Setup + ".bound")
     boundary.write_boundlines(bound_args, bound_file)
 
     # copy bound to bound.0
-    shutil.copy(bound_file, p / (arg_groups["par"].Setup + ".bound.0"))
+    shutil.copy(bound_file, p / (arg_groups["optional arguments"].Setup + ".bound.0"))
 
     # ic file (move matched file from setup_base)
     ic_file = ic.get_condinit_file(
@@ -40,15 +41,15 @@ def create_setups(arg_groups: dict):
     shutil.copy(ic_file, p / "condinit.c")
 
     # opt file
-    opt_file = p / (arg_groups["par"].Setup + ".opt")
+    opt_file = p / (arg_groups["optional arguments"].Setup + ".opt")
     # with importlib.resources.path(setup_base.opt, "base.opt") as base_opt:
     #     shutil.copy(base_opt, opt_file)
     # opt.update_opt_file(opt_file, arg_groups["opt"])
     opt.write_opt_file(opt_file, arg_groups["opt"])
 
-    # par file
-    par_file = p / (arg_groups["optional arguments"].job_name + ".par")
-    par.write_args(par_file, args={**vars(arg_groups["par"]), **vars(arg_groups["ic"])})
+    # write default par file
+    with importlib.resources.path(setup_base, "setup.par") as par_file:
+        shutil.copyfile(par_file, p / f"{arg_groups['optional arguments'].Setup}.par")
 
     # save arg_groups
     with open(p / "arg_groups.pkl", "wb") as f:
@@ -60,14 +61,14 @@ def create_setups(arg_groups: dict):
 if __name__ == "__main__":
     arg_groups = config.get_arg_groups()
     print(arg_groups)
-    p = create_setups(arg_groups)
-    config.save_arg_groups(arg_groups, p / "arg_groups.yml")
+    setup_dir = create_setups(arg_groups)
+    config.save_arg_groups(arg_groups, "fargo3d/arg_groups.yml")
     # cd fargo3d
     os.chdir("fargo3d")
     # make
     make_command = [
         "make",
-        f"SETUP={arg_groups['par'].Setup}",
+        f"SETUP={arg_groups['optional arguments'].Setup}",
         f"BIGMEM={arg_groups['make'].BIGMEM}",
         f"RESCALE={arg_groups['make'].RESCALE}",
         f"PROFILING={arg_groups['make'].PROFILING}",
@@ -83,10 +84,5 @@ if __name__ == "__main__":
     ]
     print(make_command)
     subprocess.run(make_command)
-    # run
-    subprocess.run(
-        [
-            "./fargo3d",
-            f"setups/{arg_groups['par'].Setup}/{arg_groups['optional arguments'].job_name}.par",
-        ]
-    )
+    # make clean
+    subprocess.run(["make", "clean"])
