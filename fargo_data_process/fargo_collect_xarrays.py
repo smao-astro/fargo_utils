@@ -64,11 +64,6 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
         else:
             raise ValueError(f"run id={run}, failed to match run dir.")
 
-    # only support single parameter
-    if len(fargo_runs["parameters"]) > 1:
-        raise NotImplementedError
-    parameter = fargo_runs["parameters"][0]
-
     fargo_setups = None
     for new_phys_var_type, phys_var_type in zip(
         ["sigma", "v_r", "v_theta"], ["dens", "vy", "vx"]
@@ -88,13 +83,27 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
             ]
         else:
             raise NotImplementedError
+        # make `run` (run id) as one of the dimensional coordinates
+        # other dimensional coordinates are spatial/temporal coordinates.
+        # add parameters as non-dimensional coordinates
+        # the line below collect parameters (non-dimensional coords) for each run
+        new_dim = {
+            p: ("run", [float(array.attrs[p]) for array in xarrays])
+            for p in fargo_runs["parameters"]
+        }
+        # dimensional coords
+        new_dim.update({"run": fargo_runs["runs"]})
+        # prepare to feed to xr.concat
         new_dim = xr.DataArray(
-            [float(array.attrs[parameter]) for array in xarrays], dims=parameter
+            data=fargo_runs["runs"],
+            coords=new_dim,
+            dims="run",
         )
         # concat xarrays
         xarrays = xr.concat(xarrays, dim=new_dim)
-        # update attributes
-        xarrays.attrs.pop(parameter)
+        # remove attributes that are not shared by runs.
+        for p in fargo_runs["parameters"]:
+            xarrays.attrs.pop(p)
         if fargo_setups is None:
             fargo_setups = xarrays.attrs
             fargo_setups.pop("phys_var_type")
