@@ -46,6 +46,6 @@ def get_frame_angular_velocity(frame, omegaframe, planet_distance):
             raise ValueError(
                 f"planet_distance = {planet_distance} is close to zero. Can not set rotating frame."
             )
-        return planet_distance ** -1.5
+        return planet_distance**-1.5
     else:
         raise KeyError

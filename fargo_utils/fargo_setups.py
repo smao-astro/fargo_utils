@@ -4,6 +4,7 @@ import pickle
 import shutil
 import subprocess
 import importlib.resources
+from . import par
 
 from . import setup_base
 from . import boundary
@@ -48,8 +49,16 @@ def create_setups(arg_groups: dict):
     opt.write_opt_file(opt_file, arg_groups["opt"])
 
     # write default par file
-    with importlib.resources.path(setup_base, "setup.par") as par_file:
-        shutil.copyfile(par_file, p / f"{arg_groups['optional arguments'].Setup}.par")
+    par_file = p / f"{arg_groups['optional arguments'].Setup}.par"
+    with importlib.resources.path(setup_base, "setup.par") as base_par_file:
+        shutil.copyfile(base_par_file, par_file)
+    # Setup and ic related parameters are needed in the par file at make time
+    # to make sure these parameters are in the file `outputs/variables.par`.
+    paramters = {"Setup": arg_groups["optional arguments"].Setup}
+    paramters.update(vars(arg_groups["ic"]))
+    lines = par.args_to_lines(paramters)
+    with par_file.open("a") as f:
+        f.writelines(lines)
 
     # save arg_groups
     with open(p / "arg_groups.pkl", "wb") as f:

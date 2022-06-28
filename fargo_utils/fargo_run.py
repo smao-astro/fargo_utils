@@ -120,7 +120,10 @@ def get_parser():
 def write_par_file(setup_dir: pathlib.Path, arg_groups):
     # # par file
     par_file = setup_dir / (arg_groups["optional arguments"].job_name + ".par")
-    par.write_args(par_file, args={**vars(arg_groups["par"]), **vars(arg_groups["ic"])})
+    args = {"Setup": arg_groups["optional arguments"].Setup}
+    args.update(vars(arg_groups["par"]))
+    args.update(vars(arg_groups["ic"]))
+    par.write_args(par_file, args=args)
 
 
 def run(arg_groups):
