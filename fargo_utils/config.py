@@ -38,9 +38,16 @@ def get_parser():
     ic_group.add_argument("--DensityInitial", choices=["RING2DDENS", "POWERLAW2DDENS"])
     ic_group.add_argument(
         "--VxInitial",
-        choices=["STATICPOWERLAW2DVAZIM", "KEPLERIAN2DVAZIM", "STATICRING2DVAZIM"],
+        choices=[
+            "STATICPOWERLAW2DVAZIM",
+            "KEPLERIAN2DVAZIM",
+            "STATICRING2DVAZIM",
+            "FUNG2DVAZIM",
+        ],
     )
-    ic_group.add_argument("--VyInitial", choices=["STATICVY", "KEPLERIANRINGVY"])
+    ic_group.add_argument(
+        "--VyInitial", choices=["STATICVY", "KEPLERIANRINGVY", "FUNG2DVY"]
+    )
 
     bc_group = parser.add_argument_group("bc")
     # TODO add choices

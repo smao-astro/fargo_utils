@@ -12,6 +12,7 @@ def get_condinit_file(density_initial, vx_initial, vy_initial):
         ("POWERLAW2DDENS", "STATICPOWERLAW2DVAZIM", "STATICVY"): "fargo.c",
         ("RING2DDENS", "KEPLERIAN2DVAZIM", "KEPLERIANRINGVY"): "keplerian_ring.c",
         ("RING2DDENS", "STATICRING2DVAZIM", "STATICVY"): "static_ring.c",
+        ("POWERLAW2DDENS", "FUNG2DVAZIM", "FUNG2DVY"): "fung.c",
     }
     key = (density_initial, vx_initial, vy_initial)
     if key in choices.keys():

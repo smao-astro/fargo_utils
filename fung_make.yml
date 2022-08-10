@@ -1,0 +1,31 @@
+- setups_dir: fargo3d/setups
+  job_name: fung
+  
+  DensityInitial: POWERLAW2DDENS
+  VxInitial: FUNG2DVAZIM
+  VyInitial: FUNG2DVY
+  
+  DensityYmin: FUNG2DDENS
+  DensityYmax: FUNG2DDENS
+  VxYmin: FUNG2DVAZIM
+  VxYmax: FUNG2DVAZIM
+  VyYmin: FUNG2DVY
+  VyYmax: FUNG2DVY
+
+  # opt
+  NFLUIDS: 1
+  STOCKHOLM: yes
+  X: yes
+  Y: yes
+  ISOTHERMAL: yes
+  CYLINDRICAL: yes
+  LEGACY: yes
+  POTENTIAL: yes
+  ALPHAVISCOSITY: yes
+  BLOCK_X: 16
+  BLOCK_Y: 16
+  BLOCK_Z: 1
+  MONITOR_SCALAR: 'MASS | MOM_X | TORQ'
+  MONITOR_Y_RAW: 'TORQ'
+
+  Setup: fung

@@ -33,6 +33,9 @@ def create_setups(arg_groups: dict):
     # copy bound to bound.0
     shutil.copy(bound_file, p / (arg_groups["optional arguments"].Setup + ".bound.0"))
 
+    with importlib.resources.path(setup_base, "boundaries.txt") as base_par_file:
+        shutil.copy(base_par_file, p)
+
     # ic file (move matched file from setup_base)
     ic_file = ic.get_condinit_file(
         arg_groups["ic"].DensityInitial,

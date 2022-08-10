@@ -1,0 +1,50 @@
+- FuncArchFile: func_arch.cfg
+  ### Disk parameters
+  
+  AspectRatio: 0.05
+  Sigma0: 1.0
+  Alpha: 0.001
+  SigmaSlope: 0.5
+  FlaringIndex: 0.0
+  
+  # Radial range for damping (in period-ratios). Values smaller than one
+  # prevent damping.
+  
+  DampingZone: 1.15
+  
+  # Characteristic time for damping, in units of the inverse local
+  # orbital frequency. Higher values means lower damping
+  
+  TauDamp: 0.3
+  
+  ### Planet parameters
+  
+  PlanetConfig: planets/jupiter.cfg
+  ThicknessSmoothing: 0.6
+  RocheSmoothing : 0.0
+  Eccentricity: 0.0
+  ExcludeHill: 'no'
+  IndirectTerm: 'yes'
+  
+  ### Mesh parameters
+  
+  Nx: 384
+  Ny: 128
+  Xmin: -3.14159265358979323844
+  Xmax: 3.14159265358979323844
+  Ymin: 0.4
+  Ymax: 2.5
+  OmegaFrame: 1.0005
+  Frame: G
+  
+  ### Output control parameters
+  
+  DT: 0.314159265359
+  Ninterm: 2
+  Ntot: 40
+  
+  OutputDir: '@outputs'
+  
+  ### Plotting parameters
+  
+  PlotLog: 'yes'
