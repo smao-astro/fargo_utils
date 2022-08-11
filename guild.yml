@@ -60,6 +60,13 @@
           target-type: link
       flags-dest: args
       flags-import: all
+    gap_density_evolution:
+      main: fargo_data_process.fargo_outputs2gap_evolution
+      requires:
+        - operation: run
+          target-type: link
+      flags-dest: args
+      flags-import: all
     collect_xarrays:
       main: fargo_data_process.fargo_collect_xarrays
       flags-dest: args
