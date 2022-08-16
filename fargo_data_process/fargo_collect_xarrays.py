@@ -91,6 +91,9 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
             p: ("run", [float(array.attrs[p]) for array in xarrays])
             for p in fargo_runs["parameters"]
         }
+        for p, dim in new_dim.items():
+            if len(set(dim[1])) == 1:
+                raise ValueError(f"{p} is not a variable parameter.")
         # dimensional coords
         new_dim.update({"run": fargo_runs["runs"]})
         # prepare to feed to xr.concat
