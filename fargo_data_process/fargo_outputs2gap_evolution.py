@@ -14,9 +14,9 @@ import xarray as xr
 def get_config(args=None):
     parser = argparse.ArgumentParser("main")
     parser.add_argument("--output_dir", type=str, default="fargo3d/outputs")
-    parser.add_argument("---vmin", type=float, default=None)
-    parser.add_argument("---vmax", type=float, default=None)
-    parser.add_argument("---delta", type=float, default=None)
+    parser.add_argument("--vmin", type=float, default=None)
+    parser.add_argument("--vmax", type=float, default=None)
+    parser.add_argument("--delta", type=float, default=None)
 
     return parser.parse_args(args)
 
@@ -68,6 +68,16 @@ def create_patch(delta):
     return pathpatch
 
 
+def cal_gap_depth(sigma, delta):
+    selected_index_theta = np.logical_or(sigma.theta < -delta, sigma.theta > delta)
+    selected_index_r = np.logical_and(sigma.r > 1 - delta, sigma.r < 1 + delta)
+    selected_index = np.logical_and(selected_index_theta, selected_index_r)
+
+    sigma_gap = sigma.where(selected_index)
+    gap_depth = sigma_gap.mean(["r", "theta"])
+    return gap_depth
+
+
 def main(args):
     """convert fargo outputs to npz file with (N, 4) shape."""
     run_dir = resolve_save_dir(args.output_dir, ["variables.par"])
@@ -80,19 +90,14 @@ def main(args):
     aspectratio = float(sigma.attrs["ASPECTRATIO"])
     planetmass = float(sigma.attrs["PLANETMASS"])
 
-    delta = cal_delta(aspectratio, planetmass)
+    delta = cal_delta(aspectratio, planetmass) if args.delta is None else args.delta
     print(f"Delta={delta:.2g}")
 
-    selected_index_theta = np.logical_or(sigma.theta < -delta, sigma.theta > delta)
-    selected_index_r = np.logical_and(sigma.r > 1 - delta, sigma.r < 1 + delta)
-    selected_index = np.logical_and(selected_index_theta, selected_index_r)
-
-    sigma_gap = sigma.where(selected_index)
-    gap_depth = sigma_gap.mean(["r", "theta"])
+    gap_depth = cal_gap_depth(sigma, delta)
 
     # movie
-    vmin = np.min(log_sigma.values)
-    vmax = np.max(log_sigma.values)
+    vmin = np.min(log_sigma.values) if args.vmin is None else args.vmin
+    vmax = np.max(log_sigma.values) if args.vmax is None else args.vmax
 
     fig, (ax_curve, ax_im) = plt.subplots(
         nrows=2, ncols=1, gridspec_kw={"height_ratios": [0.4, 0.6]}, figsize=(9, 12)
@@ -131,7 +136,7 @@ def main(args):
 
     # save
     gap_depth: pd.Series
-    gap_depth = sigma_gap.mean(dim=("r", "theta")).to_pandas()
+    gap_depth = gap_depth.to_pandas()
     gap_depth.to_csv(run_dir / "gap_density_evo.csv")
 
 
