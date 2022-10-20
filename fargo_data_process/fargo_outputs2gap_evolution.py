@@ -14,6 +14,9 @@ import xarray as xr
 def get_config(args=None):
     parser = argparse.ArgumentParser("main")
     parser.add_argument("--output_dir", type=str, default="fargo3d/outputs")
+    parser.add_argument("---vmin", type=float, default=None)
+    parser.add_argument("---vmax", type=float, default=None)
+    parser.add_argument("---delta", type=float, default=None)
 
     return parser.parse_args(args)
 
@@ -84,8 +87,8 @@ def main(args):
     selected_index_r = np.logical_and(sigma.r > 1 - delta, sigma.r < 1 + delta)
     selected_index = np.logical_and(selected_index_theta, selected_index_r)
 
-    log_sigma_gap = log_sigma.where(selected_index)
-    gap_depth = log_sigma_gap.mean(["r", "theta"])
+    sigma_gap = sigma.where(selected_index)
+    gap_depth = sigma_gap.mean(["r", "theta"])
 
     # movie
     vmin = np.min(log_sigma.values)
@@ -113,17 +116,22 @@ def main(args):
         artists.append([point[0], pcm])
     fig.colorbar(mappable=artists[0][1], ax=ax_im)
 
-    patch = ax_im.add_patch(create_patch(delta))
+    ax_curve.set_yscale("log")
+    ax_curve.set_xlabel("orbits")
+    ax_curve.set_ylabel(r"$\Sigma_{gap}$")
 
+    ax_im.add_patch(create_patch(delta))
     ax_im.invert_yaxis()
     ax_im.set_box_aspect(1)
+    ax_im.set_xlabel(r"$\theta$")
+    ax_im.set_ylabel("r")
 
     ani = matplotlib.animation.ArtistAnimation(fig, artists, interval=180, repeat=False)
     ani.save(run_dir / "gap_evolution.mp4")
 
     # save
     gap_depth: pd.Series
-    gap_depth = log_sigma_gap.mean(dim=("r", "theta")).to_pandas()
+    gap_depth = sigma_gap.mean(dim=("r", "theta")).to_pandas()
     gap_depth.to_csv(run_dir / "gap_density_evo.csv")
 
 
