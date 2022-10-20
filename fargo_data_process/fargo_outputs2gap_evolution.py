@@ -1,15 +1,19 @@
-import pathlib
-import pandas as pd
 import argparse
+import pathlib
+
+import matplotlib.animation
+import matplotlib.colors
+import matplotlib.patches
+import matplotlib.path
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 
 def get_config(args=None):
     parser = argparse.ArgumentParser("main")
     parser.add_argument("--output_dir", type=str, default="fargo3d/outputs")
-    parser.add_argument("--r_min", type=float, required=True)
-    parser.add_argument("--r_max", type=float, required=True)
 
     return parser.parse_args(args)
 
@@ -29,16 +33,98 @@ def resolve_save_dir(output_dir, file_list, verbose=True):
     return save_dir
 
 
+def cal_delta(aspectratio, planetmass):
+    rh = (planetmass) ** (1 / 3)
+    h = aspectratio
+    delta = 2.0 * np.maximum(rh, h)
+    return delta
+
+
+def create_patch(delta):
+    vertices_left = [
+        (-np.pi, 1 - delta),
+        (-delta, 1 - delta),
+        (-delta, 1 + delta),
+        (-np.pi, 1 + delta),
+    ]
+    vertices_right = [
+        (np.pi, 1 - delta),
+        (delta, 1 - delta),
+        (delta, 1 + delta),
+        (np.pi, 1 + delta),
+    ]
+
+    code_left = code_right = [matplotlib.path.Path.MOVETO] + [
+        matplotlib.path.Path.LINETO
+    ] * 3
+    path = matplotlib.path.Path(
+        vertices=vertices_left + vertices_right, codes=code_left + code_right
+    )
+    pathpatch = matplotlib.patches.PathPatch(path, facecolor="none", edgecolor="green")
+
+    return pathpatch
+
+
 def main(args):
     """convert fargo outputs to npz file with (N, 4) shape."""
     run_dir = resolve_save_dir(args.output_dir, ["variables.par"])
 
     sigma = xr.load_dataarray(run_dir / "test_dens.nc")
-    r_index_selected = np.logical_and(sigma.r > args.r_min, sigma.r < args.r_max)
-    sigma = sigma.where(r_index_selected, drop=True)
-    mean_gas_evolution: pd.Series
-    mean_gas_evolution = sigma.mean(dim=("r", "theta")).to_pandas()
-    mean_gas_evolution.to_csv(run_dir / "gap_density_evo.csv")
+    # convert to orbits
+    sigma["t"] = sigma["t"] / (2 * np.pi)
+    log_sigma = np.log10(sigma)
+
+    aspectratio = float(sigma.attrs["ASPECTRATIO"])
+    planetmass = float(sigma.attrs["PLANETMASS"])
+
+    delta = cal_delta(aspectratio, planetmass)
+    print(f"Delta={delta:.2g}")
+
+    selected_index_theta = np.logical_or(sigma.theta < -delta, sigma.theta > delta)
+    selected_index_r = np.logical_and(sigma.r > 1 - delta, sigma.r < 1 + delta)
+    selected_index = np.logical_and(selected_index_theta, selected_index_r)
+
+    log_sigma_gap = log_sigma.where(selected_index)
+    gap_depth = log_sigma_gap.mean(["r", "theta"])
+
+    # movie
+    vmin = np.min(log_sigma.values)
+    vmax = np.max(log_sigma.values)
+
+    fig, (ax_curve, ax_im) = plt.subplots(
+        nrows=2, ncols=1, gridspec_kw={"height_ratios": [0.4, 0.6]}, figsize=(9, 12)
+    )
+    fig: plt.Figure
+    ax_curve: plt.Axes
+    ax_im: plt.Axes
+
+    ax_curve.plot(gap_depth.t.values, gap_depth.values)
+
+    artists = []
+    for i, t in enumerate(log_sigma.t.values):
+        point = ax_curve.plot(gap_depth.t[i], gap_depth.values[i], "bs")
+        pcm = ax_im.pcolormesh(
+            log_sigma.theta,
+            log_sigma.r,
+            log_sigma.isel(t=i).values,
+            norm=matplotlib.colors.TwoSlopeNorm(vcenter=0.0, vmin=vmin, vmax=vmax),
+            cmap="RdBu_r",
+        )
+        artists.append([point[0], pcm])
+    fig.colorbar(mappable=artists[0][1], ax=ax_im)
+
+    patch = ax_im.add_patch(create_patch(delta))
+
+    ax_im.invert_yaxis()
+    ax_im.set_box_aspect(1)
+
+    ani = matplotlib.animation.ArtistAnimation(fig, artists, interval=180, repeat=False)
+    ani.save(run_dir / "gap_evolution.mp4")
+
+    # save
+    gap_depth: pd.Series
+    gap_depth = log_sigma_gap.mean(dim=("r", "theta")).to_pandas()
+    gap_depth.to_csv(run_dir / "gap_density_evo.csv")
 
 
 if __name__ == "__main__":
