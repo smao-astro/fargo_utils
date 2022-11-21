@@ -114,6 +114,8 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode, ymax):
         # crop ymax
         if ymax:
             xarrays = xarrays.isel({"r": xarrays.r < ymax})
+            xarrays.attrs["YMAX"] = str(ymax)
+            fargo_setups["YMAX"] = str(ymax)
 
         # save to file
         xarrays.to_netcdf(save_dir / f"batch_truth_{new_phys_var_type}.nc")
