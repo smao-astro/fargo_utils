@@ -14,6 +14,7 @@ def get_config():
     parser.add_argument(
         "--collecting_mode", type=str, choices=["all", "last_t_frame"], default="all"
     )
+    parser.add_argument("--ymax", type=float)
     config = parser.parse_args()
     return config
 
@@ -30,7 +31,7 @@ def yaml_file_check(fargo_runs):
     return all(cri)
 
 
-def main(runs_dir, yaml_file, save_dir, collecting_mode):
+def main(runs_dir, yaml_file, save_dir, collecting_mode, ymax):
     """Collect all fargo runs, concat data to one file.
 
     Args:
@@ -110,6 +111,9 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
         if fargo_setups is None:
             fargo_setups = xarrays.attrs
             fargo_setups.pop("phys_var_type")
+        # crop ymax
+        if ymax:
+            xarrays = xarrays.isel({"r": xarrays.r < ymax})
 
         # save to file
         xarrays.to_netcdf(save_dir / f"batch_truth_{new_phys_var_type}.nc")
@@ -126,4 +130,10 @@ def main(runs_dir, yaml_file, save_dir, collecting_mode):
 
 if __name__ == "__main__":
     config = get_config()
-    main(config.runs_dir, config.yaml_file, config.save_dir, config.collecting_mode)
+    main(
+        config.runs_dir,
+        config.yaml_file,
+        config.save_dir,
+        config.collecting_mode,
+        ymax=config.ymax,
+    )
