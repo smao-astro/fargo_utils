@@ -103,7 +103,7 @@ OPENINNER:
 
 #### User defined
 FUNG2DDENS:
-	Centered:	|'SIGMA0'*pow(Ymed(jgh)/'R0','SIGMASLOPE')|surfdens|
+	Centered:	|'SIGMA0'*pow(Ymed(jgh)/'R0',-'SIGMASLOPE')|surfdens|
 FUNG2DVY:
 	Staggered: 	|-1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow(Ymed(jgh)/'R0',2*'FLARINGINDEX')*pow(Ymed(jgh),-0.5)|-1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow((Ymed(jgh)+Ymed(jact))/2.0/'R0',2*'FLARINGINDEX')*pow((Ymed(jgh)+Ymed(jact))/2.0,-0.5)|vy|
 FUNG2DVAZIM:
