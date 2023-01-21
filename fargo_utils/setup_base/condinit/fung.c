@@ -45,7 +45,7 @@ void Init() {
       vphi[l] -= OMEGAFRAME*r;
       vphi[l] *= (1.+ASPECTRATIO*NOISE*(drand48()-.5));
 
-      vr[l] = -3.0/2.0*ALPHA*h2*sqrt((MSTAR+PLANETMASS)/(r/R0));
+      vr[l] = -3.0/2.0*ALPHA*pow(ASPECTRATIO,2)*pow(Ymin(j)/R0,2*FLARINGINDEX)*sqrt((MSTAR+PLANETMASS)/(Ymin(j)/R0));
       vr[l]   += soundspeed*NOISE*(drand48()-.5);
     }
   } 
