@@ -37,7 +37,7 @@ def resolve_save_dir(output_dir, file_list, verbose=True):
 
 
 def cal_delta(aspectratio, planetmass):
-    rh = (planetmass) ** (1 / 3)
+    rh = (planetmass / 3) ** (1 / 3)
     h = aspectratio
     delta = 2.0 * np.maximum(rh, h)
     return delta
