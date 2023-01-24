@@ -105,6 +105,6 @@ OPENINNER:
 FUNG2DDENS:
 	Centered:	|'SIGMA0'*pow(Ymed(jgh)/'R0',-'SIGMASLOPE')|surfdens|
 FUNG2DVY:
-	Staggered: 	|-1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow(Ymin(jgh)/'R0',2*'FLARINGINDEX')*sqrt(('MSTAR'+'PLANETMASS')/(Ymin(jgh)/'R0'))|-1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow(Ymin(jact)/'R0',2*'FLARINGINDEX')*sqrt(('MSTAR'+'PLANETMASS')/(Ymin(jact)/'R0'))|vy|
+	Staggered: 	|(Ymed(jact) < 'R0' ? -1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow(Ymin(jgh)/'R0',2*'FLARINGINDEX')*sqrt(('MSTAR'+'PLANETMASS')/(Ymin(jgh)/'R0')): -1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow((2*Ymed(jgh)-Ymin(jgh))/'R0',2*'FLARINGINDEX')*sqrt(('MSTAR'+'PLANETMASS')/((2*Ymed(jgh)-Ymin(jgh))/'R0')))|(Ymed(jact) < 'R0' ? -1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow(Ymin(jact)/'R0',2*'FLARINGINDEX')*sqrt(('MSTAR'+'PLANETMASS')/(Ymin(jact)/'R0')): -1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow(Ymin(jact+NGHY)/'R0',2*'FLARINGINDEX')*sqrt(('MSTAR'+'PLANETMASS')/(Ymin(jact+NGHY)/'R0')))|vy|
 FUNG2DVAZIM:
 	Centered:	|sqrt(1-1.5*pow('ASPECTRATIO',2)*pow(Ymed(jgh)/'R0',2*'FLARINGINDEX'))*sqrt(('MSTAR'+'PLANETMASS')/(Ymed(jgh)/'R0'))-Ymed(jgh)/'R0'*'OmegaFrame'|vx|
