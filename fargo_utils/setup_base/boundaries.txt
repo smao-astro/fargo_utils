@@ -107,4 +107,4 @@ FUNG2DDENS:
 FUNG2DVY:
 	Staggered: 	|-1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow(Ymin(jgh)/'R0',2*'FLARINGINDEX')*sqrt(('MSTAR'+'PLANETMASS')/(Ymin(jgh)/'R0'))|-1.5*'ALPHA'*pow('ASPECTRATIO',2)*pow(Ymin(jact)/'R0',2*'FLARINGINDEX')*sqrt(('MSTAR'+'PLANETMASS')/(Ymin(jact)/'R0'))|vy|
 FUNG2DVAZIM:
-	Centered:	|sqrt(1-0.5*pow('ASPECTRATIO',2)*pow(Ymed(jgh)/'R0',2*'FLARINGINDEX'))*sqrt(('MSTAR'+'PLANETMASS')/(Ymed(jgh)/'R0'))-Ymed(jgh)/'R0'*'OmegaFrame'|vx|
+	Centered:	|sqrt(1-1.5*pow('ASPECTRATIO',2)*pow(Ymed(jgh)/'R0',2*'FLARINGINDEX'))*sqrt(('MSTAR'+'PLANETMASS')/(Ymed(jgh)/'R0'))-Ymed(jgh)/'R0'*'OmegaFrame'|vx|

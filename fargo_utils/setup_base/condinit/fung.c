@@ -41,7 +41,7 @@ void Init() {
       e[l] = pow(soundspeed,2)*rho[l]/(GAMMA-1.0);
 #endif
       h2 = pow(ASPECTRATIO,2)*pow(r/R0,2*FLARINGINDEX);
-      vphi[l] = sqrt(1-0.5*h2)*sqrt((MSTAR+PLANETMASS)/(r/R0));
+      vphi[l] = sqrt(1-1.5*h2)*sqrt((MSTAR+PLANETMASS)/(r/R0));
       vphi[l] -= OMEGAFRAME*r;
       vphi[l] *= (1.+ASPECTRATIO*NOISE*(drand48()-.5));
 
