@@ -1,5 +1,4 @@
 import argparse
-import pathlib
 
 import matplotlib.animation
 import matplotlib.colors
@@ -10,6 +9,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+from .utils import resolve_save_dir
+
 
 def get_config(args=None):
     parser = argparse.ArgumentParser("main")
@@ -19,21 +20,6 @@ def get_config(args=None):
     parser.add_argument("--delta", type=float, default=None)
 
     return parser.parse_args(args)
-
-
-def resolve_save_dir(output_dir, file_list, verbose=True):
-    save_dir = pathlib.Path(output_dir)
-    # resolve soft links
-    for file in file_list:
-        if (save_dir / file).exists():
-            save_dir = (save_dir / file).resolve().parent
-            break
-    else:
-        raise FileNotFoundError(f"Can not find {file_list} in {save_dir}")
-
-    if verbose:
-        print(f"save_dir={save_dir}")
-    return save_dir
 
 
 def cal_delta(aspectratio, planetmass):
