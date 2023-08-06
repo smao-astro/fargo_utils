@@ -1,10 +1,85 @@
 import argparse
 import os
 
+import matplotlib.animation as ani
+import matplotlib.pyplot as plt
 import numpy as np
 
-import jaxdisk2D.physics_informed_training.postprocess.animation as ANIMATION
 from .fargoData import TimeSeqData
+
+
+class RadialDistributionEvolution:
+    def __init__(
+        self,
+        r,
+        values,
+        t,
+        title_func,
+        label_func,
+        y_axis_name="values",
+        y_min=None,
+        y_max=None,
+    ):
+        """
+
+        Args:
+            r: (r_num,) array. Radial distance at each sample position.
+            values: A list of (t_num, r_num) array. An array of evolution of the radial distribution of the values.
+                E.g. from SelfSimilarSolution.postprocess.data.GridTimeSeriesXY.mean_values_over_theta.
+            t: (t_num,) array.
+            label_func: A function of values' (list) index.
+            title_func: A function of t.
+
+        Attributes:
+            values: (t_num, N, r_num) array. N == len(values).
+        """
+        self.r = r
+        if not isinstance(values, (list, tuple)):
+            values = [values]
+        self.values = np.stack(values, axis=1)
+        self.t = t
+        self.title_func = title_func
+        self.label_func = label_func
+        self.y_axis_name = y_axis_name
+
+        self.fig, self.ax = plt.subplots()
+        self.fig.subplots_adjust(bottom=0.15)
+        self.fig.subplots_adjust(left=0.20)
+        self.lines = []
+        for i in range(self.values.shape[1]):
+            # frame t==0
+            self.lines.append(
+                self.ax.plot(
+                    self.r,
+                    self.values[0, i],
+                    "-",
+                    label=self.label_func(i),
+                )[0]
+            )
+
+        self.y_min = np.min(self.values) if y_min is None else y_min
+        self.y_max = np.max(self.values) if y_max is None else y_max
+
+    def _init(self):
+        self.ax.set_xlabel(r"$r/R_0$")
+        self.ax.set_ylabel(self.y_axis_name)
+        self.ax.set_ylim(self.y_min, self.y_max)
+        self.ax.legend(fontsize="small")
+        return self.lines
+
+    def _animate(self, values_and_t):
+        values, t = values_and_t
+        for line, value in zip(self.lines, values):
+            line.set_ydata(value)
+        self.ax.set_title(self.title_func(t), pad=10)
+        return self.lines
+
+    @property
+    def animation(self):
+        frames = list(zip(self.values, self.t))
+        return ani.FuncAnimation(
+            self.fig, self._animate, frames, self._init, repeat=False, interval=180
+        )
 
 
 def main(
@@ -42,7 +117,7 @@ def main(
         # get t
         t = tsdata.t[::period_of_t_step]
         # get ani
-        ani = ANIMATION.RadialDistributionEvolution(
+        ani = RadialDistributionEvolution(
             r,
             value_list,
             t,
