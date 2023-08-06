@@ -18,9 +18,9 @@ def main():
 
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_root_dir", type=pathlib.Path)
+    parser.add_argument("--data_root_dir", type=str)
     parser.add_argument("--dataset_id", type=str)
-    parser.add_argument("--save_dir", type=pathlib.Path, default=None)
+    parser.add_argument("--save_dir", type=str)
     parser.add_argument("--lo_select", type=float, help="in degrees")
     parser.add_argument("--hi_select", type=float, help="in degrees")
     args = parser.parse_args()
@@ -45,6 +45,7 @@ def main():
         )
 
         data_select.to_netcdf(save_dir / file)
+
 
 if __name__ == "__main__":
     main()

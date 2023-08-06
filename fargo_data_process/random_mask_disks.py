@@ -19,9 +19,9 @@ def main():
 
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_root_dir", type=pathlib.Path)
+    parser.add_argument("--data_root_dir", type=str)
     parser.add_argument("--dataset_id", type=str)
-    parser.add_argument("--save_dir", type=pathlib.Path, default=None)
+    parser.add_argument("--save_dir", type=str)
     parser.add_argument("--lo_hi", type=str)
     args = parser.parse_args()
 
