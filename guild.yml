@@ -73,6 +73,14 @@
       flags-import: all
       requires:
         file: 'fargo_runs.yml'
+    uniform_mask_disks:
+      main: fargo_data_process.uniform_mask_disks
+      flags-dest: args
+      flags-import: all
+    random_mask_disks:
+      main: fargo_data_process.random_mask_disks
+      flags-dest: args
+      flags-import: all
     to_mat:
       main: fargo_data_process.fargo_outputs2mat
       requires:
