@@ -205,7 +205,7 @@ class CartesianToPolar:
         """(column, row)"""
 
         x, y = np.split(output_coor, 2, axis=1)
-        r = np.sqrt(x ** 2 + y ** 2)
+        r = np.sqrt(x**2 + y**2)
         theta = np.arctan2(y, x)
         """from -pi to pi"""
 
@@ -266,7 +266,7 @@ class GridData(object):
 
         :return: (NY, NX, 1)
         """
-        return np.fromfile(self.file_path, dtype=np.float).reshape(self.ny, self.nx, 1)
+        return np.fromfile(self.file_path, dtype=float).reshape(self.ny, self.nx, 1)
 
     @property
     def mean_value_over_x(self) -> np.ndarray:
