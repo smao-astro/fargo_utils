@@ -40,7 +40,7 @@ def main():
         if (save_dir / file).exists():
             raise FileExistsError(f"{save_dir / file} exists.")
         data = xr.open_dataarray(data_dir / file)
-        data_select = fargo_data_process.mask_disks.mask_disks(
+        data_select = fargo_data_process.mask_disks.mask_disks_azimuthally(
             data, lo_select, hi_select
         )
 

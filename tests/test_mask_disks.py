@@ -22,8 +22,10 @@ def data():
         (np.pi / 2, -np.pi / 2),
     ],
 )
-def test_mask_disks_0(data, lo_select, hi_select):
-    data_select = fargo_data_process.mask_disks.mask_disks(data, lo_select, hi_select)
+def test_mask_disks_azimuthally_0(data, lo_select, hi_select):
+    data_select = fargo_data_process.mask_disks.mask_disks_azimuthally(
+        data, lo_select, hi_select
+    )
     x = y = np.linspace(-2, 2, 200)
 
     run_id = data["run"].values[0]
@@ -42,10 +44,12 @@ def test_mask_disks_0(data, lo_select, hi_select):
     assert True
 
 
-def test_mask_disks_1(data):
+def test_mask_disks_azimuthally_1(data):
     lo_select = np.random.default_rng().uniform(-np.pi, np.pi, len(data["run"]))
     hi_select = lo_select + np.pi
-    data_select = fargo_data_process.mask_disks.mask_disks(data, lo_select, hi_select)
+    data_select = fargo_data_process.mask_disks.mask_disks_azimuthally(
+        data, lo_select, hi_select
+    )
     x = y = np.linspace(-2, 2, 200)
 
     for run_id in data["run"].values[:3]:
@@ -61,4 +65,34 @@ def test_mask_disks_1(data):
         axes[0].pcolormesh(x, y, data_cart, shading="auto")
         axes[1].pcolormesh(x, y, data_cart_half, shading="auto")
         fig.show()
+    assert True
+
+
+@pytest.mark.parametrize(
+    "lo_select, hi_select",
+    [
+        (0.3, 2.0),
+        (0.6, 3.0),
+        (0.6, 2.0),
+    ],
+)
+def test_mask_disks_radially(data, lo_select, hi_select):
+    data_select = fargo_data_process.mask_disks.mask_disks_radially(
+        data, lo_select, hi_select
+    )
+    x = y = np.linspace(-2, 2, 200)
+
+    run_id = data["run"].values[0]
+    data_cart = fargo_data_process.utils.xarray_polar_to_cartesian(
+        data.sel(run=run_id), x, y
+    )
+    data_cart_half = fargo_data_process.utils.xarray_polar_to_cartesian(
+        data_select.sel(run=run_id), x, y
+    )
+
+    # plot
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+    axes[0].pcolormesh(x, y, data_cart, shading="auto")
+    axes[1].pcolormesh(x, y, data_cart_half, shading="auto")
+    fig.show()
     assert True
