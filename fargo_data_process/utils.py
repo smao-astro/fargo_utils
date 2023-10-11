@@ -46,10 +46,50 @@ def xarray_polar_to_cartesian(data_array: xr.DataArray, x, y):
 
     data_array = data_array.interp({"r": r, "theta": theta}).values
 
-    data_array = xr.DataArray(
-        data_array.reshape((len(y), len(x))),
-        coords=coords,
-        dims=["y", "x"],
-    )
+    if data_array.ndim == 2:
+        data_array = xr.DataArray(
+            data_array.reshape((-1, len(y), len(x))),
+            coords=coords,
+            dims=["run", "y", "x"],
+        )
+    else:
+        data_array = xr.DataArray(
+            data_array.reshape((len(y), len(x))),
+            coords=coords,
+            dims=["y", "x"],
+        )
+
+    return data_array
+
+
+def xarray_cartesian_to_polar(data_array: xr.DataArray, r, theta):
+    r = np.array(r)
+    theta = np.array(theta)
+    if r.ndim != 1 or theta.ndim != 1:
+        raise ValueError("r and theta must be 1D array.")
+
+    # theta is outer axis, r is inner axis
+    rgrid, thetagrid = np.meshgrid(r, theta, indexing="ij")
+    # pseudo dimension
+    x = xr.DataArray(rgrid.flatten() * np.cos(thetagrid.flatten()), dims="i")
+    y = xr.DataArray(rgrid.flatten() * np.sin(thetagrid.flatten()), dims="i")
+
+    coords = {k: data_array[k] for k in set(data_array.coords) - {"x", "y"}}
+    coords.update({"r": ("r", r), "theta": ("theta", theta)})
+
+    data_array = data_array.interp({"x": x, "y": y}).values
+
+    if data_array.ndim == 2:
+        data_array = xr.DataArray(
+            data_array.reshape((-1, len(r), len(theta))),
+            coords=coords,
+            dims=["run", "r", "theta"],
+        )
+    else:
+        data_array = xr.DataArray(
+            data_array.reshape((len(r), len(theta))),
+            coords=coords,
+            dims=["r", "theta"],
+        )
 
     return data_array

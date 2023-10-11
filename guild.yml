@@ -89,6 +89,10 @@
       main: fargo_data_process.add_noise_disks
       flags-dest: args
       flags-import: all
+    add_beam_noise_disks:
+      main: fargo_data_process.add_beam_noise_disks
+      flags-dest: args
+      flags-import: all
     to_mat:
       main: fargo_data_process.fargo_outputs2mat
       requires:
