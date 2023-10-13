@@ -58,8 +58,19 @@ def main():
     # convert to cartesian
     x = y = np.linspace(-2.5, 2.5, size)
     data_in_cartesian = fargo_data_process.utils.xarray_polar_to_cartesian(data, x, y)
+    # filtered noise to xarray
+    filtered_noise = xr.DataArray(
+        filtered_noise,
+        dims=["y", "x"],
+        coords={
+            "y": ("y", data_in_cartesian.y.values),
+            "x": ("x", data_in_cartesian.x.values),
+        },
+    )
     # add noise
-    data_in_cartesian = data_in_cartesian * 10**filtered_noise
+    # data_variance = np.log10(data_in_cartesian).quantile(0.95, dim=['y', 'x']) - np.log10(data_in_cartesian).quantile(0.05, dim=['y', 'x'])
+    data_variance = np.log10(data_in_cartesian).std(dim=["y", "x"])
+    data_in_cartesian = data_in_cartesian * 10 ** (filtered_noise * data_variance)
     # convert back to polar
     data = fargo_data_process.utils.xarray_cartesian_to_polar(
         data_in_cartesian, data.r.values, data.theta.values
