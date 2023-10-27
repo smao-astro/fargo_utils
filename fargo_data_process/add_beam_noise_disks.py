@@ -49,6 +49,7 @@ def main():
     if (save_dir / file).exists():
         raise FileExistsError(f"{save_dir / file} exists.")
     data = xr.open_dataarray(data_dir / file)
+    data_variance = np.log10(data / data.r**-0.5).std(dim=["r", "theta"])
     # generate noise
     size = 512
     scale = args.beam_size / 2.5 * size
@@ -69,7 +70,7 @@ def main():
     )
     # add noise
     # data_variance = np.log10(data_in_cartesian).quantile(0.95, dim=['y', 'x']) - np.log10(data_in_cartesian).quantile(0.05, dim=['y', 'x'])
-    data_variance = np.log10(data_in_cartesian).std(dim=["y", "x"])
+    # data_variance = np.log10(data_in_cartesian).std(dim=["y", "x"])
     data_in_cartesian = data_in_cartesian * 10 ** (filtered_noise * data_variance)
     # convert back to polar
     data = fargo_data_process.utils.xarray_cartesian_to_polar(
