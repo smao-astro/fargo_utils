@@ -52,7 +52,7 @@ def main():
     data_variance = np.log10(data / data.r**-0.5).std(dim=["r", "theta"])
     # generate noise
     size = 512
-    scale = args.beam_size / 2.5 * size
+    scale = args.beam_size / 5 * size
     print(f"scale: {scale:.2f}")
     filtered_noise = generate_beam_noise(size, args.noise, scale, args.seed)
 
