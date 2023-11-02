@@ -101,6 +101,10 @@
       main: fargo_data_process.v_los_disks
       flags-dest: args
       flags-import: all
+    add_v_los_noise:
+      main: fargo_data_process.add_v_los_noise
+      flags-dest: args
+      flags-import: all
     to_mat:
       main: fargo_data_process.fargo_outputs2mat
       requires:
