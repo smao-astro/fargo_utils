@@ -3,38 +3,13 @@ import pathlib
 import shutil
 
 import astropy.convolution
+import jax.numpy as jnp
 import numpy as np
-import scipy.optimize
+import tqdm
 import xarray as xr
+from jaxfit import CurveFit
 
 import fargo_data_process.utils
-
-
-def synthetic_cube(
-    data_cart: np.array,
-    velocity_min: float,
-    velocity_max: float,
-    n_channels: int,
-    gaussian_std: float,
-):
-    """
-
-    Args:
-        data_cart:
-        velocity_min:
-        velocity_max:
-        n_channels:
-        gaussian_std:
-
-    Returns:
-        cube_noiseless: cube without noise, shape (n_channels, data_cart.shape[0], data_cart.shape[1])
-        vgrid: velocity grid, shape (n_channels,)
-    """
-    vgrid = np.linspace(velocity_min, velocity_max, n_channels)
-    cube_noiseless = np.exp(
-        -0.5 * ((data_cart - vgrid[:, None, None]) / gaussian_std) ** 2
-    )
-    return cube_noiseless, vgrid
 
 
 def compute_cube_noise_map(
@@ -75,7 +50,7 @@ def compute_cube_noise_map(
 
 
 def gaussian(x, a, b, c):
-    return a * np.exp(-0.5 * ((x - b) / c) ** 2)
+    return a * jnp.exp(-0.5 * ((x - b) / c) ** 2)
 
 
 def compute_noisy_v_los(
@@ -93,18 +68,19 @@ def compute_noisy_v_los(
         noisy_data_cart: shape (data_cart.shape[0], data_cart.shape[1])
     """
     shape = cube_noisy.shape[1:]
+    jcf = CurveFit(flength=len(vgrid))
     noisy_data_cart = np.zeros(shape) * np.nan
-    for i in range(len(shape[0])):
-        for j in range(len(shape[1])):
+    for i in range(shape[0]):
+        for j in range(shape[1]):
             if np.isnan(vlos_clean[i, j]):
                 continue
             try:
-                popt, pcov = scipy.optimize.curve_fit(
+                popt, pcov = jcf.curve_fit(
                     gaussian,
                     vgrid,
                     cube_noisy[:, i, j],
                     # the parameters a, b, c are magnitude of the gaussian function, location of the peak, and standard deviation
-                    p0=[1, vlos_clean[i, j], gaussian_std],
+                    p0=np.array([1.0, vlos_clean[i, j], gaussian_std]),
                 )
             except RuntimeError:
                 print("fitting failed")
@@ -145,27 +121,13 @@ def main():
     ]:
         if (save_dir / file).exists():
             raise FileExistsError(f"{save_dir / file} exists.")
-    # copy file to save_dir
-    for file in [
-        "batch_truth_sigma.nc",
-        "batch_truth_v_r.nc",
-        "batch_truth_v_theta.nc",
-    ]:
-        shutil.copy(data_dir / file, save_dir / file)
 
     # Line-of-sight velocity
     data = xr.open_dataarray(data_dir / "batch_truth_v_los.nc")
     # to cartesian
     x = y = np.linspace(-2.5, 2.5, args.cartesian_resolution)
     data_cart = fargo_data_process.utils.xarray_polar_to_cartesian(data, x, y)
-    cube, vgrid = synthetic_cube(
-        data_cart.values,
-        velocity_min=args.vmin,
-        velocity_max=args.vmax,
-        n_channels=args.n_channels,
-        gaussian_std=args.line_width,
-    )
-    # add noise to v_los
+    # cube noise map
     beam_size_pixel = args.beam_size_physical / 5 * args.cartesian_resolution
     cube_noise_map = compute_cube_noise_map(
         beam_size_pixel,
@@ -174,20 +136,69 @@ def main():
         args.cube_noise_level,
         args.seed,
     )
-    noisy_data_cart = compute_noisy_v_los(
-        cube + cube_noise_map,
-        data_cart.values,
-        vgrid,
-        args.line_width,
+    # iterate over the run dimension of data_cart, get data_cart_run
+    data_cart_array = data_cart.values
+    vgrid = np.linspace(args.vmin, args.vmax, args.n_channels)
+    # data_cart_array insert one dimension after the first dimension
+    cube = np.exp(
+        -0.5
+        * ((data_cart_array[:, None, :, :] - vgrid[:, None, None]) / args.line_width)
+        ** 2
     )
+    # cube shape (n_runs, n_channels, data_cart.shape[0], data_cart.shape[1])
+    jcf = CurveFit(flength=args.n_channels)
+    noisy_data_cart = np.zeros(data_cart_array.shape) * np.nan
+    cube = cube + cube_noise_map
+    # nested tqdm progress bar loop
+    for run_index in tqdm.tqdm(
+        range(data_cart_array.shape[0]), position=0, desc="run", leave=False, ncols=80
+    ):
+        for i in tqdm.tqdm(
+            range(data_cart_array.shape[1]), position=1, desc="i", leave=False, ncols=80
+        ):
+            for j in tqdm.tqdm(
+                range(data_cart_array.shape[2]),
+                position=2,
+                desc="j",
+                leave=False,
+                ncols=80,
+            ):
+                if np.isnan(data_cart_array[run_index, i, j]):
+                    continue
+                try:
+                    popt, pcov = jcf.curve_fit(
+                        gaussian,
+                        vgrid,
+                        cube[run_index, :, i, j],
+                        # the parameters a, b, c are magnitude of the gaussian function, location of the peak, and standard deviation
+                        p0=np.array(
+                            [1.0, data_cart_array[run_index, i, j], args.line_width]
+                        ),
+                    )
+                except RuntimeError:
+                    print("fitting failed")
+                    continue
+                # location of the peak of the new fitted Gaussian gives the noisy line-of-sight velocity
+                noisy_data_cart[run_index, i, j] = popt[1]
+
     noisy_data_cart = xr.DataArray(
-        noisy_data_cart, coords=data_cart.coords, attrs=data_cart.attrs
+        noisy_data_cart,
+        coords=data_cart.coords,
+        attrs=data_cart.attrs,
     )
     # convert back to polar
     noisy_data = fargo_data_process.utils.xarray_cartesian_to_polar(
         noisy_data_cart, data.r.values, data.theta.values
     )
     noisy_data.to_netcdf(save_dir / "batch_truth_v_los.nc")
+
+    # copy file to save_dir
+    for file in [
+        "batch_truth_sigma.nc",
+        "batch_truth_v_r.nc",
+        "batch_truth_v_theta.nc",
+    ]:
+        shutil.copy(data_dir / file, save_dir / file)
 
 
 if __name__ == "__main__":
