@@ -136,23 +136,24 @@ def main():
         args.cube_noise_level,
         args.seed,
     )
-    # iterate over the run dimension of data_cart, get data_cart_run
     data_cart_array = data_cart.values
     vgrid = np.linspace(args.vmin, args.vmax, args.n_channels)
-    # data_cart_array insert one dimension after the first dimension
-    cube = np.exp(
-        -0.5
-        * ((data_cart_array[:, None, :, :] - vgrid[:, None, None]) / args.line_width)
-        ** 2
-    )
-    # cube shape (n_runs, n_channels, data_cart.shape[0], data_cart.shape[1])
     jcf = CurveFit(flength=args.n_channels)
     noisy_data_cart = np.zeros(data_cart_array.shape) * np.nan
-    cube = cube + cube_noise_map
     # nested tqdm progress bar loop
     for run_index in tqdm.tqdm(
         range(data_cart_array.shape[0]), position=0, desc="run", leave=False, ncols=80
     ):
+        cube = np.exp(
+            -0.5
+            * (
+                (data_cart_array[run_index, :, :] - vgrid[:, None, None])
+                / args.line_width
+            )
+            ** 2
+        )
+        # cube shape (n_channels, data_cart.shape[1], data_cart.shape[2])
+        cube = cube + cube_noise_map
         for i in tqdm.tqdm(
             range(data_cart_array.shape[1]), position=1, desc="i", leave=False, ncols=80
         ):
@@ -169,7 +170,7 @@ def main():
                     popt, pcov = jcf.curve_fit(
                         gaussian,
                         vgrid,
-                        cube[run_index, :, i, j],
+                        cube[:, i, j],
                         # the parameters a, b, c are magnitude of the gaussian function, location of the peak, and standard deviation
                         p0=np.array(
                             [1.0, data_cart_array[run_index, i, j], args.line_width]
