@@ -3,6 +3,9 @@ import pathlib
 import shutil
 
 import astropy.convolution
+from jax.config import config
+
+config.update("jax_enable_x64", True)
 import jax.numpy as jnp
 import numpy as np
 import tqdm
@@ -141,36 +144,22 @@ def main():
     jcf = CurveFit(flength=args.n_channels)
     noisy_data_cart = np.zeros(data_cart_array.shape) * np.nan
     # nested tqdm progress bar loop
-    for run_index in tqdm.tqdm(
-        range(data_cart_array.shape[0]), position=0, desc="run", leave=False, ncols=80
-    ):
-        cube = np.exp(
-            -0.5
-            * (
-                (data_cart_array[run_index, :, :] - vgrid[:, None, None])
-                / args.line_width
-            )
-            ** 2
-        )
-        # cube shape (n_channels, data_cart.shape[1], data_cart.shape[2])
-        cube = cube + cube_noise_map
-        for i in tqdm.tqdm(
-            range(data_cart_array.shape[1]), position=1, desc="i", leave=False, ncols=80
-        ):
-            for j in tqdm.tqdm(
-                range(data_cart_array.shape[2]),
-                position=2,
-                desc="j",
-                leave=False,
-                ncols=80,
-            ):
+    for run_index in tqdm.tqdm(range(data_cart_array.shape[0]), desc="run", ncols=80):
+        for i in range(data_cart_array.shape[1]):
+            for j in range(data_cart_array.shape[2]):
                 if np.isnan(data_cart_array[run_index, i, j]):
                     continue
+                line = np.exp(
+                    -0.5
+                    * ((data_cart_array[run_index, i, j] - vgrid) / args.line_width)
+                    ** 2
+                )
+                line = line + cube_noise_map[:, i, j]
                 try:
                     popt, pcov = jcf.curve_fit(
                         gaussian,
                         vgrid,
-                        cube[:, i, j],
+                        line,
                         # the parameters a, b, c are magnitude of the gaussian function, location of the peak, and standard deviation
                         p0=np.array(
                             [1.0, data_cart_array[run_index, i, j], args.line_width]
