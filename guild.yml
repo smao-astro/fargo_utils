@@ -93,8 +93,8 @@
       main: fargo_data_process.add_beam_noise_disks
       flags-dest: args
       flags-import: all
-    rotate_disks:
-      main: fargo_data_process.rotate_disks
+    rotate_and_stretch_disks:
+      main: fargo_data_process.rotate_and_stretch_disks
       flags-dest: args
       flags-import: all
     v_los_disks:
