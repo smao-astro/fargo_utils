@@ -68,8 +68,9 @@ def main():
     # Line-of-sight velocity
     data_v_r = xr.open_dataarray(data_dir / "batch_truth_v_r.nc")
     data_v_theta = xr.open_dataarray(data_dir / "batch_truth_v_theta.nc")
-    # convert to non-rotating frame
-    data_v_theta = data_v_theta + data_v_theta.r
+    # v_theta should already have been converted to inertial frame
+    if np.any(data_v_theta.values < 0):
+        raise ValueError("v_theta should already have been converted to inertial frame")
     data_v_los = compute_v_los(data_v_r, data_v_theta)
     data_v_los.to_netcdf(save_dir / "batch_truth_v_los.nc")
 
