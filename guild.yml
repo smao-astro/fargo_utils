@@ -85,16 +85,12 @@
         main: fargo_data_process.uniform_mask_disks_radial
         flags-dest: args
         flags-import: all
-    add_noise_disks:
-      main: fargo_data_process.add_noise_disks
-      flags-dest: args
-      flags-import: all
-    add_beam_noise_disks:
-      main: fargo_data_process.add_beam_noise_disks
-      flags-dest: args
-      flags-import: all
     rotate_and_stretch_disks:
       main: fargo_data_process.rotate_and_stretch_disks
+      flags-dest: args
+      flags-import: all
+    add_sigma_noise:
+      main: fargo_data_process.add_beam_noise_disks
       flags-dest: args
       flags-import: all
     v_los_disks:

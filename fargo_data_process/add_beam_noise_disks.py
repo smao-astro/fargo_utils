@@ -49,25 +49,29 @@ def main():
     if (save_dir / file).exists():
         raise FileExistsError(f"{save_dir / file} exists.")
     data = xr.open_dataarray(data_dir / file)
-    data_variance = np.log10(data / data.r**-0.5).std(dim=["r", "theta"])
+    r_unit = 100  # AU
+    background = (data["r"] * data["r_p"] / r_unit) ** -0.5
+    data_variance = np.log10(data / background).std(dim=["r", "theta"])
     # generate noise
+    # scale should be the times to 100 AU
+    scale = args.beam_size * r_unit
+    # below is scale in coordinate
+    scale = scale / data["r_p"]
+    # below is scale in pixel
     size = 512
-    scale = args.beam_size / 5 * size
-    print(f"scale: {scale:.2f}")
-    filtered_noise = generate_beam_noise(size, args.noise, scale, args.seed)
+    scale = scale / 5 * size
+    noise_list = []
+    for scale_ in scale.values:
+        filtered_noise = generate_beam_noise(size, args.noise, scale_, args.seed)
+        noise_list.append(filtered_noise)
+    # stack noise
+    filtered_noise = np.stack(noise_list)
 
     # convert to cartesian
     x = y = np.linspace(-2.5, 2.5, size)
     data_in_cartesian = fargo_data_process.utils.xarray_polar_to_cartesian(data, x, y)
     # filtered noise to xarray
-    filtered_noise = xr.DataArray(
-        filtered_noise,
-        dims=["y", "x"],
-        coords={
-            "y": ("y", data_in_cartesian.y.values),
-            "x": ("x", data_in_cartesian.x.values),
-        },
-    )
+    filtered_noise = xr.DataArray(filtered_noise, coords=data_in_cartesian.coords)
     # add noise
     # data_variance = np.log10(data_in_cartesian).quantile(0.95, dim=['y', 'x']) - np.log10(data_in_cartesian).quantile(0.05, dim=['y', 'x'])
     # data_variance = np.log10(data_in_cartesian).std(dim=["y", "x"])
