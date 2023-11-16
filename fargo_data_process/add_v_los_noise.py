@@ -1,16 +1,14 @@
 import argparse
+import functools
+import multiprocessing
 import pathlib
 import shutil
 
 import astropy.convolution
-from jax.config import config
-
-config.update("jax_enable_x64", True)
-import jax.numpy as jnp
 import numpy as np
 import tqdm
 import xarray as xr
-from jaxfit import CurveFit
+from scipy.optimize import curve_fit
 
 import fargo_data_process.utils
 
@@ -53,44 +51,51 @@ def compute_cube_noise_map(
 
 
 def gaussian(x, a, b, c):
-    return a * jnp.exp(-0.5 * ((x - b) / c) ** 2)
+    return a * np.exp(-0.5 * ((x - b) / c) ** 2)
 
 
-def compute_noisy_v_los(
-    cube_noisy: np.array, vlos_clean: np.array, vgrid: np.array, gaussian_std: float
-) -> np.array:
+def jacobian(x, a, b, c):
+    return np.stack(
+        [
+            gaussian(x, a, b, c) / a,
+            gaussian(x, a, b, c) * (x - b) / c**2,
+            gaussian(x, a, b, c) * (x - b) ** 2 / c**3,
+        ],
+        axis=-1,
+    )
+
+
+def fit_noisy_velocity_center(
+    velocity: float, noise: np.array, vgrid: np.array, line_width: float
+):
     """
 
     Args:
-        cube_noisy:
-        vlos_clean:
-        vgrid:
-        gaussian_std:
+        velocity:
+        noise:
 
     Returns:
-        noisy_data_cart: shape (data_cart.shape[0], data_cart.shape[1])
+
     """
-    shape = cube_noisy.shape[1:]
-    jcf = CurveFit(flength=len(vgrid))
-    noisy_data_cart = np.zeros(shape) * np.nan
-    for i in range(shape[0]):
-        for j in range(shape[1]):
-            if np.isnan(vlos_clean[i, j]):
-                continue
-            try:
-                popt, pcov = jcf.curve_fit(
-                    gaussian,
-                    vgrid,
-                    cube_noisy[:, i, j],
-                    # the parameters a, b, c are magnitude of the gaussian function, location of the peak, and standard deviation
-                    p0=np.array([1.0, vlos_clean[i, j], gaussian_std]),
-                )
-            except RuntimeError:
-                print("fitting failed")
-                continue
-            # peak of the new fitted-gaussian gives the noisy line-of-sight velocity
-            noisy_data_cart[i, j] = popt[1]
-    return noisy_data_cart
+    if np.isnan(velocity):
+        return np.nan
+    line = np.exp(-0.5 * ((velocity - vgrid) / line_width) ** 2)
+    line = line + noise
+    try:
+        out = curve_fit(
+            gaussian,
+            vgrid,
+            line,
+            # the parameters a, b, c are magnitude of the gaussian function, location of the peak, and standard deviation
+            p0=np.array([1.0, float(velocity), line_width]),
+            jac=jacobian,
+        )
+        popt, pcov = out[0], out[1]
+    except RuntimeError:
+        print("fitting failed")
+        return np.nan
+    # location of the peak of the new fitted Gaussian gives the noisy line-of-sight velocity
+    return popt[1]
 
 
 def main():
@@ -104,7 +109,7 @@ def main():
     parser.add_argument(
         "--line_width", type=float, default=0.1, help="in Keplerian velocity"
     )
-    parser.add_argument("--beam_size_physical", type=float, default=0.05, help="in r_p")
+    parser.add_argument("--beam_size_physical", type=float, default=2.5, help="in AU")
     parser.add_argument("--n_channels", type=int, default=200)
     parser.add_argument("--cube_noise_level", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=0)
@@ -130,46 +135,45 @@ def main():
     # to cartesian
     x = y = np.linspace(-2.5, 2.5, args.cartesian_resolution)
     data_cart = fargo_data_process.utils.xarray_polar_to_cartesian(data, x, y)
-    # cube noise map
-    beam_size_pixel = args.beam_size_physical / 5 * args.cartesian_resolution
-    cube_noise_map = compute_cube_noise_map(
-        beam_size_pixel,
-        args.n_channels,
-        args.cartesian_resolution,
-        args.cube_noise_level,
-        args.seed,
-    )
+
     data_cart_array = data_cart.values
     vgrid = np.linspace(args.vmin, args.vmax, args.n_channels)
-    jcf = CurveFit(flength=args.n_channels)
-    noisy_data_cart = np.zeros(data_cart_array.shape) * np.nan
+    line_width = args.line_width
+    noisy_data_cart = np.empty(data_cart_array.shape) * np.nan
+    # Create a partial function with vgrid and line_width fixed
+    partial_fit_noisy_velocity_center = functools.partial(
+        fit_noisy_velocity_center, vgrid=vgrid, line_width=line_width
+    )
+
     # nested tqdm progress bar loop
     for run_index in tqdm.tqdm(range(data_cart_array.shape[0]), desc="run", ncols=80):
-        for i in range(data_cart_array.shape[1]):
-            for j in range(data_cart_array.shape[2]):
-                if np.isnan(data_cart_array[run_index, i, j]):
-                    continue
-                line = np.exp(
-                    -0.5
-                    * ((data_cart_array[run_index, i, j] - vgrid) / args.line_width)
-                    ** 2
-                )
-                line = line + cube_noise_map[:, i, j]
-                try:
-                    popt, pcov = jcf.curve_fit(
-                        gaussian,
-                        vgrid,
-                        line,
-                        # the parameters a, b, c are magnitude of the gaussian function, location of the peak, and standard deviation
-                        p0=np.array(
-                            [1.0, data_cart_array[run_index, i, j], args.line_width]
-                        ),
-                    )
-                except RuntimeError:
-                    print("fitting failed")
-                    continue
-                # location of the peak of the new fitted Gaussian gives the noisy line-of-sight velocity
-                noisy_data_cart[run_index, i, j] = popt[1]
+        # beam size below is in coordinate
+        beam_size = (
+            args.beam_size_physical / data_cart.isel(run=run_index)["r_p"].values
+        )
+        # beam size below is in pixel
+        beam_size = beam_size / 5 * args.cartesian_resolution
+        # cube noise map
+        cube_noise_map = compute_cube_noise_map(
+            beam_size,
+            args.n_channels,
+            args.cartesian_resolution,
+            args.cube_noise_level,
+            args.seed,
+        )
+        data_flattened = data_cart_array[run_index].flatten()
+        cube_noise_map = cube_noise_map.reshape(cube_noise_map.shape[0], -1)
+
+        # parallel
+        with multiprocessing.Pool() as pool:
+            # the output is flattened, shape: data.shape[1] * data.shape[2]
+            noisy_data = pool.starmap(
+                partial_fit_noisy_velocity_center,
+                zip(data_flattened, cube_noise_map.T),
+            )
+
+        noisy_data = np.array(noisy_data).reshape(data_cart_array.shape[1:])
+        noisy_data_cart[run_index] = noisy_data
 
     noisy_data_cart = xr.DataArray(
         noisy_data_cart,

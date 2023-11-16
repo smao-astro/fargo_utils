@@ -35,7 +35,7 @@ def main():
     parser.add_argument("--dataset_id", type=str)
     parser.add_argument("--save_dir", type=str)
     parser.add_argument("--noise", type=float, help="in dex")
-    parser.add_argument("--beam_size", type=float)
+    parser.add_argument("--beam_size", type=float, default=2.5, help="in 100 AU")
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 
@@ -53,8 +53,8 @@ def main():
     background = (data["r"] * data["r_p"] / r_unit) ** -0.5
     data_variance = np.log10(data / background).std(dim=["r", "theta"])
     # generate noise
-    # scale should be the times to 100 AU
-    scale = args.beam_size * r_unit
+    # scale below is in AU
+    scale = args.beam_size
     # below is scale in coordinate
     scale = scale / data["r_p"]
     # below is scale in pixel
