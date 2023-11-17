@@ -84,11 +84,9 @@ def main():
     data.to_netcdf(save_dir / file)
 
     # copy file to save_dir
-    for file in [
-        "batch_truth_v_r.nc",
-        "batch_truth_v_theta.nc",
-    ]:
-        shutil.copy(data_dir / file, save_dir / file)
+    file_list = [f.name for f in data_dir.glob("batch_truth_*.nc") if f.name != file]
+    for f in file_list:
+        shutil.copy(data_dir / f, save_dir / f)
 
 
 if __name__ == "__main__":
