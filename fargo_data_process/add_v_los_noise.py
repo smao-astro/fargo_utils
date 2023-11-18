@@ -1,10 +1,10 @@
 import argparse
 import functools
-import multiprocessing
 import pathlib
 import shutil
 
 import astropy.convolution
+import joblib
 import numpy as np
 import tqdm
 import xarray as xr
@@ -164,13 +164,10 @@ def main():
         data_flattened = data_cart_array[run_index].flatten()
         cube_noise_map = cube_noise_map.reshape(cube_noise_map.shape[0], -1)
 
-        # parallel
-        with multiprocessing.Pool() as pool:
-            # the output is flattened, shape: data.shape[1] * data.shape[2]
-            noisy_data = pool.starmap(
-                partial_fit_noisy_velocity_center,
-                zip(data_flattened, cube_noise_map.T),
-            )
+        noisy_data = joblib.Parallel(n_jobs=-1)(
+            joblib.delayed(partial_fit_noisy_velocity_center)(v, noise)
+            for v, noise in zip(data_flattened, cube_noise_map.T)
+        )
 
         noisy_data = np.array(noisy_data).reshape(data_cart_array.shape[1:])
         noisy_data_cart[run_index] = noisy_data
