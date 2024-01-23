@@ -37,7 +37,11 @@ def write_args(file_path, args: dict):
         f.writelines(lines)
 
 
-def get_frame_angular_velocity(frame, omegaframe, planet_distance):
+def get_frame_angular_velocity(frame, omegaframe, planet_distance, planet_mass):
+    """Get the frame angular velocity.
+
+    Currently only work for planets in circular orbits.
+    """
     if frame == "F":
         return omegaframe
     elif frame in ["C", "G"]:
@@ -46,6 +50,11 @@ def get_frame_angular_velocity(frame, omegaframe, planet_distance):
             raise ValueError(
                 f"planet_distance = {planet_distance} is close to zero. Can not set rotating frame."
             )
-        return planet_distance**-1.5
+        # below two line is FARGO3D's unit system, see std/standard.units
+        stellar_mass = 1.0
+        gravity_constant = 1.0
+        return np.sqrt(
+            gravity_constant * (stellar_mass + planet_mass) / planet_distance**3
+        )
     else:
         raise KeyError

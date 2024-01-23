@@ -1,6 +1,7 @@
 import argparse
 import pickle
 
+import numpy as np
 import pytest
 
 import fargo_utils.par
@@ -25,3 +26,15 @@ def test_move_to_first():
     origin_lines = lines.copy()
     fargo_utils.par.move_to_first(lines)
     assert (lines[0].startswith("Setup")) and (origin_lines.sort() == lines.sort())
+
+
+def test_get_frame_angular_velocity():
+    planet_mass = 1e-5
+    frame_angular_velocity = fargo_utils.par.get_frame_angular_velocity(
+        frame="G",
+        omegaframe=1.0005,
+        planet_distance=1.0,
+        planet_mass=planet_mass,
+    )
+    expected_frame_angular_velocity = np.sqrt(1.0 + planet_mass)
+    assert np.isclose(frame_angular_velocity, expected_frame_angular_velocity)
