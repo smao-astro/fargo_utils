@@ -118,6 +118,19 @@ def get_parser():
 
 
 def write_par_file(setup_dir: pathlib.Path, arg_groups):
+    """Extract args from arg_groups and write to par file.
+
+    The function do two things (1) extact args from arg_groups and (2) write to par file.
+    args is a dict of key-value pairs. The key is the FARGO3D parameter name, and the value is the value of the parameter.
+    args contain the FARGO3D parameters in the xxx.par file. args is a subset of arg_groups. Other FARGO3D parameters may go to xxx.bound, xxx.opt, or planet config file.
+
+    Args:
+        setup_dir:
+        arg_groups:
+
+    Returns:
+
+    """
     # # par file
     par_file = setup_dir / (arg_groups["optional arguments"].job_name + ".par")
     args = {"Setup": arg_groups["optional arguments"].Setup}
@@ -141,6 +154,9 @@ if __name__ == "__main__":
     args = get_parser().parse_args()
     fargo_dir = pathlib.Path("fargo3d")
     arg_groups = config.load_arg_groups(fargo_dir / "arg_groups.yml")
+    # the arg_groups contain a dict of Namespace objects
+    # {'bc': Namespace(), 'ic': Namespace(), 'make': Namespace(), 'opt': Namespace(), 'optional arguments': Namespace(),
+    # 'par': Namespace(), 'positional arguments': Namespace()}
 
     # append values to arg_groups
     arg_groups["par"] = args

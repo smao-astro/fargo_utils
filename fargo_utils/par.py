@@ -4,7 +4,15 @@ import numpy as np
 
 
 def args_to_lines(args: dict):
-    """Only process args that not None."""
+    """Converts a dictionary of arguments into a list of strings, each representing a key-value pair.
+
+    Each key-value pair is formatted as 'key\tvalue\n'. Only pairs where value is not None are processed.
+    For float values, they are converted to scientific notation without unnecessary trailing zeros.
+
+    Example:
+    >>> args_to_lines({'a': 1, 'b': None, 'c': 3.0})
+    ['a\t1\n', 'c\t3e+00\n']
+    """
     arg_list = []
     for k, v in args.items():
         if v is not None:
