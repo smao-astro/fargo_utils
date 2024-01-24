@@ -8,3 +8,8 @@ setuptools>=56.0.0
 xarray>=2022.3.0
 PyYAML>=5.4.1
 guildai>=0.8.1
+
+pandas
+astropy
+joblib
+tqdm
