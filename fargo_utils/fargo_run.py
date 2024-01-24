@@ -7,6 +7,8 @@ import os
 import pathlib
 import subprocess
 
+import numpy as np
+
 from . import config
 from . import par
 
@@ -73,6 +75,13 @@ def get_parser():
     parser.add_argument("--RealType", choices=["Standard", "float", "double"])
 
     parser.add_argument("--PlanetMass", type=float)
+    parser.add_argument(
+        "--PlanetMassFile",
+        type=str,
+        choices=["par", "cfg"],
+        default="cfg",
+        help="The old version of this package use `par` as the default value.",
+    )
     parser.add_argument("--Field")
     parser.add_argument("--Cmap")
 
@@ -117,26 +126,59 @@ def get_parser():
     return parser
 
 
-def write_par_file(setup_dir: pathlib.Path, arg_groups):
-    """Extract args from arg_groups and write to par file.
-
-    The function do two things (1) extact args from arg_groups and (2) write to par file.
-    args is a dict of key-value pairs. The key is the FARGO3D parameter name, and the value is the value of the parameter.
-    args contain the FARGO3D parameters in the xxx.par file. args is a subset of arg_groups. Other FARGO3D parameters may go to xxx.bound, xxx.opt, or planet config file.
-
-    Args:
-        setup_dir:
-        arg_groups:
-
-    Returns:
-
+def overwrite_planet_config_file_content(planet_mass: float, lines: list):
     """
-    # # par file
-    par_file = setup_dir / (arg_groups["optional arguments"].job_name + ".par")
-    args = {"Setup": arg_groups["optional arguments"].Setup}
-    args.update(vars(arg_groups["par"]))
-    args.update(vars(arg_groups["ic"]))
-    par.write_args(par_file, args=args)
+    Overwrites the mass of a planet in a planetary system configuration file,
+    under specific conditions.
+
+    This function updates the mass of the planet in the file, only if the file
+    contains exactly one line of planet data and this line is the last line in
+    the file. The planet data line is identified as the first non-comment line
+    (not starting with '#') and should be at the end of the file.
+
+    Parameters:
+    - planet_mass (float): The new mass of the planet to be written into the file.
+    - file_lines (list): The lines of the file to be updated.
+
+    Example:
+    Original file content:
+    ###########################################################
+    #   Planetary system initial configuration
+    ###########################################################
+
+    # Planet Name   Distance        Mass     Accretion      Feels Disk      Feels Others
+    Jupiter         1.0             0.001    0.0            NO              NO
+
+    After calling overwrite_planet_config_file_content(0.002, pathlib.Path('path_to_your_file.txt')),
+    the file content will change to:
+    ###########################################################
+    #   Planetary system initial configuration
+    ###########################################################
+
+    # Planet Name   Distance        Mass     Accretion      Feels Disk      Feels Others
+    Jupiter         1.0             0.002    0.0            NO              NO
+    """
+
+    # Check for exactly one planet data line and that it is the last line
+    planet_data_line_index = []
+    for i, line in enumerate(lines):
+        if line.strip() and not line.startswith("#"):
+            planet_data_line_index.append(i)
+    if len(planet_data_line_index) != 1 or planet_data_line_index[0] != len(lines) - 1:
+        raise ValueError("The file does not meet the specified conditions.")
+
+    # Update the mass in the last line
+    parts = lines[-1].split()
+    # what number format is accepted by FARGO3D?
+    # 1.0e-05 is good
+    # 1e-05 is good
+    # 1.0e-5 is good
+    parts[2] = np.format_float_scientific(
+        planet_mass, trim="0"
+    )  # Replace the mass value
+    lines[-1] = "\t".join(parts) + "\n"  # Reconstruct the line
+
+    return lines
 
 
 def run(arg_groups):
@@ -166,6 +208,30 @@ if __name__ == "__main__":
         arg_groups=arg_groups, file_path=fargo_dir / "arg_groups.yml"
     )
 
-    write_par_file(setup_dir=fargo_dir, arg_groups=arg_groups)
+    par_file_content = {"Setup": arg_groups["optional arguments"].Setup}
+    par_file_content.update(vars(arg_groups["par"]))
+    if arg_groups["par"].PlanetConfig is None:
+        raise ValueError("PlanetConfig is None")
+    if arg_groups["par"].PlanetMassFile == "cfg":
+        # We do not write PlanetMass to par file.
+        par_file_content.pop("PlanetMass", None)
+        # Instead, we use the value to overwrite the planet config file.
+        if arg_groups["par"].PlanetMass is not None:
+            # overwrite planet config file
+            planet_config_file = fargo_dir / arg_groups["par"].PlanetConfig
+            with open(planet_config_file, "r") as f:
+                lines = f.readlines()
+            lines = overwrite_planet_config_file_content(
+                planet_mass=arg_groups["par"].PlanetMass, lines=lines
+            )
+            with open(planet_config_file, "w") as f:
+                f.writelines(lines)
+    # We do not write PlanetMassFile to par file, this parameter is only used in this package, not in FARGO3D
+    par_file_content.pop("PlanetMassFile", None)
+    par_file_content.update(vars(arg_groups["ic"]))
+
+    # write par file
+    par_file = fargo_dir / (arg_groups["optional arguments"].job_name + ".par")
+    par.write_args(par_file, args=par_file_content)
 
     run(arg_groups)
