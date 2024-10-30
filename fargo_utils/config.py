@@ -161,6 +161,10 @@ def get_arg_groups(args=None):
         group_dict = {a.dest: getattr(args, a.dest, None) for a in group._group_actions}
         arg_groups[group.title] = argparse.Namespace(**group_dict)
 
+    # compatible with python/3.10
+    if "options" in arg_groups:
+        arg_groups["optional arguments"] = arg_groups.pop("options")
+
     return arg_groups
 
 
