@@ -91,7 +91,13 @@ def get_parser():
     opt_group.add_argument("--CYLINDRICAL", type=bool)
     opt_group.add_argument("--SPHERICAL", type=bool)
     ## Transport
-    opt_group.add_argument("--STANDARD", type=bool)
+    opt_group.add_argument(
+        "--RAM",
+        type=bool,
+        help="Rapid Advection Algorithm on Arbitrary Meshes (Benítez-Llambay et al. 2023)",
+    )
+    opt_group.add_argument("--STANDARD", type=bool, help="Forces the standard advection algorithm in x.")
+    ### If both above are OFF, use the default---orbital advection (FARGO) algorithm.
     ## Slopes
     opt_group.add_argument("--DONOR", type=bool)
     ## Artificial Viscosity
