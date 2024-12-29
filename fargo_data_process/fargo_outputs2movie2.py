@@ -6,10 +6,81 @@ import matplotlib.patches
 import matplotlib.path
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import xarray as xr
 
 from .utils import resolve_save_dir
+
+
+def plot_polar_mesh(log_sigma, vmin, vmax, run_dir):
+    fig, ax_im = plt.subplots(figsize=(args.figure_width, args.figure_height))
+    fig: plt.Figure
+    ax_im: plt.Axes
+
+    artists = []
+    for i, t in enumerate(log_sigma.t.values):
+        pcm = ax_im.pcolormesh(
+            log_sigma.theta,
+            log_sigma.r,
+            log_sigma.isel(t=i).values,
+            norm=matplotlib.colors.TwoSlopeNorm(vcenter=0.0, vmin=vmin, vmax=vmax),
+            cmap="RdBu_r",
+        )
+        annotation = plt.annotate(
+            f"t = {log_sigma.isel(t=i).t.values:.2f}",
+            xy=(0.1, 0.1),
+            xycoords="axes fraction",
+            c="black",
+        )
+        artists.append([pcm, annotation])
+    cbar = fig.colorbar(mappable=artists[0][0], ax=ax_im)
+    cbar.ax.set_yticklabels([f"{10**v:.2f}" for v in cbar.ax.get_yticks()])
+
+    if args.invert_yaxis:
+        ax_im.invert_yaxis()
+    ax_im.set_box_aspect(1)
+    ax_im.set_xlabel("Azimuth")
+    ax_im.set_ylabel(r"$R/R_{p}$")
+
+    ani = matplotlib.animation.ArtistAnimation(
+        fig, artists, interval=args.frame_interval, repeat=False
+    )
+    ani.save(run_dir / f"{args.filename}.mp4")
+
+
+def plot_cartesian_mesh(log_sigma, vmin, vmax, run_dir):
+    fig, ax_im = plt.subplots(figsize=(args.figure_width, args.figure_height))
+    fig: plt.Figure
+    ax_im: plt.Axes
+
+    x = log_sigma.r * np.cos(log_sigma.theta)
+    y = log_sigma.r * np.sin(log_sigma.theta)
+
+    artists = []
+    for i, t in enumerate(log_sigma.t.values):
+        pcm = ax_im.pcolormesh(
+            x,
+            y,
+            log_sigma.isel(t=i).values,
+            norm=matplotlib.colors.TwoSlopeNorm(vcenter=0.0, vmin=vmin, vmax=vmax),
+            cmap="RdBu_r",
+        )
+        annotation = plt.annotate(
+            f"t = {log_sigma.isel(t=i).t.values:.2f}",
+            xy=(0.1, 0.1),
+            xycoords="axes fraction",
+            c="black",
+        )
+        artists.append([pcm, annotation])
+    cbar = fig.colorbar(mappable=artists[0][0], ax=ax_im)
+    cbar.ax.set_yticklabels([f"{10**v:.2f}" for v in cbar.ax.get_yticks()])
+
+    ax_im.set_xlabel("x")
+    ax_im.set_ylabel("y")
+
+    ani = matplotlib.animation.ArtistAnimation(
+        fig, artists, interval=args.frame_interval, repeat=False
+    )
+    ani.save(run_dir / f"{args.filename}_cartesian.mp4")
 
 
 def get_config(args=None):
@@ -44,39 +115,8 @@ def main(args):
     vmin = np.min(log_sigma.values) if args.vmin is None else args.vmin
     vmax = np.max(log_sigma.values) if args.vmax is None else args.vmax
 
-    fig, ax_im = plt.subplots(figsize=(args.figure_width, args.figure_height))
-    fig: plt.Figure
-    ax_im: plt.Axes
-
-    artists = []
-    for i, t in enumerate(log_sigma.t.values):
-        pcm = ax_im.pcolormesh(
-            log_sigma.theta,
-            log_sigma.r,
-            log_sigma.isel(t=i).values,
-            norm=matplotlib.colors.TwoSlopeNorm(vcenter=0.0, vmin=vmin, vmax=vmax),
-            cmap="RdBu_r",
-        )
-        annotation = plt.annotate(
-            f"t = {log_sigma.isel(t=i).t.values:.2f}",
-            xy=(0.1, 0.1),
-            xycoords="axes fraction",
-            c="black",
-        )
-        artists.append([pcm, annotation])
-    cbar = fig.colorbar(mappable=artists[0][0], ax=ax_im)
-    cbar.ax.set_yticklabels([f"{10**v:.2f}" for v in cbar.ax.get_yticks()])
-
-    if args.invert_yaxis:
-        ax_im.invert_yaxis()
-    ax_im.set_box_aspect(1)
-    ax_im.set_xlabel("Azimuth")
-    ax_im.set_ylabel(r"$R/R_{p}$")
-
-    ani = matplotlib.animation.ArtistAnimation(
-        fig, artists, interval=args.frame_interval, repeat=False
-    )
-    ani.save(run_dir / f"{args.filename}.mp4")
+    plot_polar_mesh(log_sigma, vmin, vmax, run_dir)
+    plot_cartesian_mesh(log_sigma, vmin, vmax, run_dir)
 
 
 if __name__ == "__main__":
