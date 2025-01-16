@@ -1,22 +1,9 @@
 - model: fargo
   sourcecode:
+    - exclude: "*"
     - include:
         - fargo_utils
         - fargo_data_process
-        - jaxdisk2D
-        - '**.py'
-    - exclude:
-        dir:
-          - fargo3d
-          - tmp
-          - tests
-          - job
-          - runs
-          - __pycache__
-    - exclude: '*.ipynb'
-    - exclude: '*.cfg'
-    - exclude: '*.out'
-    - exclude: '*.csv'
 
   operations:
     get_fargo:
