@@ -13,9 +13,9 @@ def main(output_dir):
     print(f"vx shape {vx.shape}")
     vy = TimeSeqData(output_dir, phys_var_type="vy").xarray
     print(f"vy shape {vy.shape}")
-    dens.to_netcdf(save_dir / "test_dens.nc")
-    vx.to_netcdf(save_dir / "test_vx.nc")
-    vy.to_netcdf(save_dir / "test_vy.nc")
+    dens.to_netcdf(save_dir / "test_dens.nc", engine="scipy")
+    vx.to_netcdf(save_dir / "test_vx.nc", engine="scipy")
+    vy.to_netcdf(save_dir / "test_vy.nc", engine="scipy")
 
 
 if __name__ == "__main__":
